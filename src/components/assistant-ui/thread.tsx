@@ -348,7 +348,7 @@ const Composer: FC = () => {
               className="absolute left-2 bottom-[calc(100%+8px)] z-50 w-56 rounded-xl border border-border bg-card/95 p-1 shadow-xl backdrop-blur-md flex flex-col animate-in fade-in slide-in-from-bottom-2"
             >
               {activeOptions.map((option, idx) => {
-                const Icon = option.icon as any;
+                const Icon = option.icon as string | ComponentType<{ className?: string }>;
                 return (
                   <button
                     key={option.id}
@@ -438,7 +438,7 @@ const Composer: FC = () => {
 };
 
 import { DynamicBarsIcon } from "@/components/ui/ai-chat-input";
-import { ChatContext, ChatMode, EffortLevel } from "@/app/(dashboard)/new/page";
+import { ChatContext, ChatMode, EffortLevel } from "@/lib/chat-context";
 
 const MODES: ChatMode[] = ["Ask", "Plan", "Build"];
 const EFFORTS: EffortLevel[] = ["Low", "Medium", "Max Effort"];

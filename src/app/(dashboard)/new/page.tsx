@@ -1,18 +1,9 @@
 "use client";
 
-import React, { useState, createContext, useContext } from "react";
+import React, { useState, useContext } from "react";
 import { useLocalRuntime, AssistantRuntimeProvider } from "@assistant-ui/react";
 import { Thread } from "@/components/assistant-ui/thread";
-
-export type ChatMode = "Ask" | "Plan" | "Build";
-export type EffortLevel = "Low" | "Medium" | "Max Effort";
-
-export const ChatContext = createContext<{
-	activeMode: ChatMode;
-	setActiveMode: (mode: ChatMode) => void;
-	effortLevel: EffortLevel;
-	setEffortLevel: (effort: EffortLevel) => void;
-} | null>(null);
+import { ChatContext, type ChatMode, type EffortLevel } from "@/lib/chat-context";
 
 export default function NewChatPage() {
 	const [activeMode, setActiveMode] = useState<ChatMode>("Plan");
