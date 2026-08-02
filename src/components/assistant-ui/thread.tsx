@@ -22,7 +22,9 @@ import {
 } from "@/components/assistant-ui/tool-group";
 import { TooltipIconButton } from "@/components/assistant-ui/tooltip-icon-button";
 import { Button } from "@/components/ui/button";
+import SharedButton from "@/components/shared/Button";
 import { cn } from "@/lib/utils";
+import { InteractiveQuestionTool } from "@/components/assistant-ui/interactive-question-tool";
 import {
   ActionBarMorePrimitive,
   ActionBarPrimitive,
@@ -56,10 +58,13 @@ import {
   createContext,
   useContext,
   useState,
+  useRef,
+  useCallback,
   type ComponentType,
   type FC,
   type PropsWithChildren,
 } from "react";
+import { MENTION_OPTIONS, SLASH_ACTIONS } from "@/lib/mentions";
 
 export type ThreadGroupPart = MessagePrimitive.GroupedParts.GroupPart;
 
@@ -211,16 +216,223 @@ const ThreadSuggestionItem: FC = () => {
 };
 
 const Composer: FC = () => {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const backdropRef = useRef<HTMLDivElement>(null);
+  const [activeQuery, setActiveQuery] = useState<{ query: string; startIndex: number; endIndex: number; type: 'mention' | 'slash' } | null>(null);
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [composerValue, setComposerValue] = useState("");
+
+  const filteredMentions = MENTION_OPTIONS.filter((opt) => 
+    opt.label.toLowerCase().includes(activeQuery?.query.toLowerCase() || "")
+  );
+
+  const filteredActions = SLASH_ACTIONS.filter((opt) => 
+    opt.label.toLowerCase().includes(activeQuery?.query.toLowerCase() || "")
+  );
+
+  const activeOptions = (activeQuery?.type === 'mention' ? filteredMentions : filteredActions).slice(0, 5);
+
+  const handleScroll = useCallback((e: React.UIEvent<HTMLTextAreaElement>) => {
+    if (backdropRef.current) {
+      backdropRef.current.scrollTop = e.currentTarget.scrollTop;
+      backdropRef.current.scrollLeft = e.currentTarget.scrollLeft;
+    }
+  }, []);
+
+  const updateMentionState = useCallback(() => {
+    if (!textareaRef.current) return;
+    const cursorPosition = textareaRef.current.selectionStart;
+    const value = textareaRef.current.value;
+    setComposerValue(value);
+    
+    const textBeforeCursor = value.slice(0, cursorPosition);
+    
+    const mentionMatch = textBeforeCursor.match(/(?:^|\s)@(\w*)$/);
+    if (mentionMatch) {
+      setActiveQuery({
+        type: 'mention',
+        query: mentionMatch[1],
+        startIndex: cursorPosition - mentionMatch[1].length - 1,
+        endIndex: cursorPosition,
+      });
+      setSelectedIndex(0);
+      return;
+    }
+
+    const slashMatch = textBeforeCursor.match(/(?:^|\s)\/(\w*)$/);
+    if (slashMatch) {
+      setActiveQuery({
+        type: 'slash',
+        query: slashMatch[1],
+        startIndex: cursorPosition - slashMatch[1].length - 1,
+        endIndex: cursorPosition,
+      });
+      setSelectedIndex(0);
+      return;
+    }
+
+    setActiveQuery(null);
+  }, []);
+
+  const insertOption = useCallback((option: typeof MENTION_OPTIONS[0] | typeof SLASH_ACTIONS[0]) => {
+    if (!activeQuery || !textareaRef.current) return;
+    
+    const textarea = textareaRef.current;
+    const currentVal = textarea.value;
+    const prefix = activeQuery.type === 'mention' ? '@' : '/';
+    const newVal = 
+      currentVal.slice(0, activeQuery.startIndex) + 
+      `${prefix}${option.label} ` + 
+      currentVal.slice(activeQuery.endIndex);
+    
+    const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, "value")?.set;
+    nativeInputValueSetter?.call(textarea, newVal);
+    textarea.dispatchEvent(new Event('input', { bubbles: true }));
+
+    setActiveQuery(null);
+    setComposerValue(newVal);
+    
+    setTimeout(() => {
+      textarea.focus();
+      const newCursorPos = activeQuery.startIndex + prefix.length + option.label.length + 1;
+      textarea.setSelectionRange(newCursorPos, newCursorPos);
+    }, 0);
+  }, [activeQuery]);
+
+  const renderFormattedText = (text: string) => {
+    if (!text) return null;
+    
+    const mentionLabels = MENTION_OPTIONS.map(o => `@${o.label}`);
+    const actionLabels = SLASH_ACTIONS.map(o => `/${o.label}`);
+    const allLabels = [...mentionLabels, ...actionLabels].sort((a, b) => b.length - a.length);
+    
+    if (allLabels.length === 0) return <span className="whitespace-pre-wrap break-words">{text}</span>;
+    
+    const escapedLabels = allLabels.map(label => label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+    const regex = new RegExp(`(${escapedLabels.join('|')})`, 'g');
+    
+    const parts = text.split(regex);
+    
+    return parts.map((part, index) => {
+      const isMention = mentionLabels.includes(part);
+      const isAction = actionLabels.includes(part);
+      
+      if (isMention) {
+        return <span key={index} className="bg-primary/20 ring-[3px] ring-primary/20 text-primary rounded-sm font-medium">{part}</span>;
+      }
+      if (isAction) {
+        return <span key={index} className="bg-orange-500/20 ring-[3px] ring-orange-500/20 text-orange-600 dark:text-orange-400 rounded-sm font-medium">{part}</span>;
+      }
+      return <span key={index} className="text-foreground">{part}</span>;
+    });
+  };
+
   return (
     <ComposerPrimitive.Root className="aui-composer-root relative flex w-full flex-col mb-4 md:mb-8">
-      <ComposerPrimitive.AttachmentDropzone render={<div data-slot="aui_composer-shell" className="border-border/60 data-[dragging=true]:border-ring focus-within:border-border dark:border-muted-foreground/15 dark:focus-within:border-muted-foreground/30 flex w-full flex-col gap-2 rounded-(--composer-radius) border bg-(--composer-bg) p-(--composer-padding) shadow-[0_4px_16px_-8px_rgba(0,0,0,0.08),0_1px_2px_rgba(0,0,0,0.04)] transition-[border-color,box-shadow] focus-within:shadow-[0_6px_24px_-8px_rgba(0,0,0,0.12),0_1px_2px_rgba(0,0,0,0.05)] data-[dragging=true]:border-dashed data-[dragging=true]:bg-[color-mix(in_oklab,var(--color-accent)_50%,var(--color-background))] dark:shadow-none" />}><ComposerAttachments /><ComposerPrimitive.Input
-                      placeholder="Send a message..."
-                      className="aui-composer-input caret-primary placeholder:text-muted-foreground/80 max-h-32 min-h-10 w-full resize-none bg-transparent px-2.5 py-1 text-base outline-none"
-                      rows={1}
-                      autoFocus
-                      enterKeyHint="send"
-                      aria-label="Message input"
-                    /><ComposerAction /></ComposerPrimitive.AttachmentDropzone>
+      <ComposerPrimitive.AttachmentDropzone render={<div data-slot="aui_composer-shell" className="border-border/60 data-[dragging=true]:border-ring focus-within:border-border dark:border-muted-foreground/15 dark:focus-within:border-muted-foreground/30 flex w-full flex-col gap-2 rounded-(--composer-radius) border bg-(--composer-bg) p-(--composer-padding) shadow-[0_4px_16px_-8px_rgba(0,0,0,0.08),0_1px_2px_rgba(0,0,0,0.04)] transition-[border-color,box-shadow] focus-within:shadow-[0_6px_24px_-8px_rgba(0,0,0,0.12),0_1px_2px_rgba(0,0,0,0.05)] data-[dragging=true]:border-dashed data-[dragging=true]:bg-[color-mix(in_oklab,var(--color-accent)_50%,var(--color-background))] dark:shadow-none" />}>
+        <ComposerAttachments />
+        <div className="relative w-full">
+          {/* Backdrop div for highlighting text */}
+          <div 
+            ref={backdropRef}
+            aria-hidden="true" 
+            className="absolute inset-0 z-0 pointer-events-none w-full h-full max-h-32 min-h-10 px-2.5 py-1 text-base overflow-y-auto whitespace-pre-wrap break-words"
+            style={{ color: "transparent" }}
+          >
+             {renderFormattedText(composerValue)}
+             {composerValue.endsWith('\n') ? <br /> : null}
+          </div>
+
+          {activeQuery && activeOptions.length > 0 && (
+            <div 
+              className="absolute left-2 bottom-[calc(100%+8px)] z-50 w-56 rounded-xl border border-border bg-card/95 p-1 shadow-xl backdrop-blur-md flex flex-col animate-in fade-in slide-in-from-bottom-2"
+            >
+              {activeOptions.map((option, idx) => {
+                const Icon = option.icon as any;
+                return (
+                  <button
+                    key={option.id}
+                    type="button"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => insertOption(option)}
+                    className={cn(
+                      "flex items-center gap-2.5 rounded-lg px-2 py-1 text-left transition-colors cursor-default outline-none",
+                      idx === selectedIndex ? "bg-accent/80 text-foreground" : "text-foreground/70 hover:bg-accent/50 hover:text-foreground"
+                    )}
+                  >
+                    <div className={cn(
+                      "flex h-6 w-6 shrink-0 items-center justify-center rounded-md transition-colors",
+                      idx === selectedIndex ? "bg-background shadow-sm text-foreground" : "text-muted-foreground"
+                    )}>
+                      {typeof Icon === "string" ? (
+                        <img src={Icon} alt="" className="size-4 object-contain" />
+                      ) : (
+                        <Icon className="size-3.5" />
+                      )}
+                    </div>
+                    <div className="flex flex-col overflow-hidden">
+                      <span className="leading-tight text-xs font-medium truncate">{option.label}</span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+          <ComposerPrimitive.Input
+            ref={textareaRef}
+            onChange={(e) => {
+              setComposerValue(e.target.value);
+              updateMentionState();
+            }}
+            onScroll={handleScroll}
+            onKeyUp={(e) => {
+              if (["ArrowLeft", "ArrowRight", "Backspace", "Delete"].includes(e.key)) {
+                updateMentionState();
+              }
+            }}
+            onClick={() => updateMentionState()}
+            onKeyDown={(e) => {
+              if (activeQuery && activeOptions.length > 0) {
+                if (e.key === "ArrowUp") {
+                  e.preventDefault();
+                  setSelectedIndex((prev) => (prev > 0 ? prev - 1 : activeOptions.length - 1));
+                  return;
+                }
+                if (e.key === "ArrowDown") {
+                  e.preventDefault();
+                  setSelectedIndex((prev) => (prev < activeOptions.length - 1 ? prev + 1 : 0));
+                  return;
+                }
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  insertOption(activeOptions[selectedIndex]);
+                  return;
+                }
+                if (e.key === "Escape") {
+                  e.preventDefault();
+                  setActiveQuery(null);
+                  return;
+                }
+              }
+              if (e.key === "Enter" && !e.shiftKey && !activeQuery) {
+                // Set timeout to clear state after the send action completes
+                setTimeout(() => setComposerValue(""), 0);
+              }
+            }}
+            placeholder="Send a message..."
+            className={cn(
+              "aui-composer-input relative z-10 caret-primary max-h-32 min-h-10 w-full resize-none bg-transparent px-2.5 py-1 text-base outline-none",
+              composerValue.length > 0 ? "text-transparent" : "text-foreground placeholder:text-muted-foreground/80"
+            )}
+            style={{ color: composerValue.length > 0 ? 'transparent' : undefined }}
+            rows={1}
+            autoFocus
+            enterKeyHint="send"
+            aria-label="Message input"
+          />
+        </div>
+        <ComposerAction onSend={() => setTimeout(() => setComposerValue(""), 0)} />
+      </ComposerPrimitive.AttachmentDropzone>
     </ComposerPrimitive.Root>
   );
 };
@@ -231,7 +443,7 @@ import { ChatContext, ChatMode, EffortLevel } from "@/app/(dashboard)/new/page";
 const MODES: ChatMode[] = ["Ask", "Plan", "Build"];
 const EFFORTS: EffortLevel[] = ["Low", "Medium", "Max Effort"];
 
-const ComposerAction: FC = () => {
+const ComposerAction: FC<{ onSend: () => void }> = ({ onSend }) => {
   const context = useContext(ChatContext);
   if (!context) return null;
   const { activeMode, setActiveMode, effortLevel, setEffortLevel } = context;
@@ -281,10 +493,18 @@ const ComposerAction: FC = () => {
           </AuiIf>
         </AuiIf>
         <AuiIf condition={(s) => !s.thread.isRunning}>
-          <ComposerPrimitive.Send render={<TooltipIconButton tooltip="Send message" side="bottom" type="button" variant="default" size="icon" className="aui-composer-send size-7 rounded-full" aria-label="Send message" />}><ArrowUpIcon className="aui-composer-send-icon size-4.5" /></ComposerPrimitive.Send>
+          <ComposerPrimitive.Send render={
+            <SharedButton size="sm" showArrow={false} onClick={onSend} className="aui-composer-send h-8 w-8 rounded-xl !p-0 flex items-center justify-center ml-2" aria-label="Send message">
+              <ArrowUpIcon className="size-4.5" />
+            </SharedButton>
+          } />
         </AuiIf>
         <AuiIf condition={(s) => s.thread.isRunning}>
-          <ComposerPrimitive.Cancel render={<Button type="button" variant="default" size="icon" className="aui-composer-cancel size-7 rounded-full" aria-label="Stop generating" />}><SquareIcon className="aui-composer-cancel-icon size-3.5 fill-current" /></ComposerPrimitive.Cancel>
+          <ComposerPrimitive.Cancel render={
+            <SharedButton variant="danger" size="sm" showArrow={false} className="aui-composer-cancel h-8 w-8 rounded-xl !p-0 flex items-center justify-center ml-2" aria-label="Stop generating">
+              <SquareIcon className="size-3.5 fill-current" />
+            </SharedButton>
+          } />
         </AuiIf>
       </div>
     </div>
@@ -323,11 +543,16 @@ const AssistantMessage: FC = () => {
         className="text-foreground px-2 leading-relaxed wrap-break-word"
       >
         <MessagePrimitive.GroupedParts
-          groupBy={groupPartByType({
-            reasoning: ["group-chainOfThought", "group-reasoning"],
-            "tool-call": ["group-chainOfThought", "group-tool"],
-            "standalone-tool-call": [],
-          })}
+          groupBy={(part, context) => {
+            if (part.type === "tool-call" && part.toolName === "ask_user") {
+              return [];
+            }
+            return groupPartByType({
+              reasoning: ["group-chainOfThought", "group-reasoning"],
+              "tool-call": ["group-chainOfThought", "group-tool"],
+              "standalone-tool-call": [],
+            })(part, context);
+          }}
         >
           {({ part, children }) => {
             switch (part.type) {
@@ -367,6 +592,10 @@ const AssistantMessage: FC = () => {
               case "reasoning":
                 return <Reasoning {...part} />;
               case "tool-call":
+                if (part.toolName === "ask_user") {
+                  // @ts-expect-error - InteractiveQuestionTool is a tool UI component
+                  return <InteractiveQuestionTool {...part} />;
+                }
                 return part.toolUI ?? <ToolFallbackComponent {...part} />;
               case "data":
                 return part.dataRendererUI;

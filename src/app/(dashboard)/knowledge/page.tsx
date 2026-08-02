@@ -1,14 +1,20 @@
 "use client";
+import { useState, useRef } from "react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import CustomButton from "@/components/shared/Button";
-import { SearchIcon, UploadCloudIcon, FileTextIcon, LinkIcon, MoreHorizontalIcon, UsersIcon, GlobeIcon, FolderIcon } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { SearchIcon, UploadCloudIcon, FileTextIcon, LinkIcon, MoreHorizontalIcon, UsersIcon, GlobeIcon, FolderIcon, Loader2Icon, EyeIcon, PencilIcon, Trash2Icon } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
-const MOCK_KNOWLEDGE = [
+const INITIAL_KNOWLEDGE = [
 	{
 		id: "1",
 		name: "Customer Service SOP 2024.pdf",
@@ -16,7 +22,7 @@ const MOCK_KNOWLEDGE = [
 		size: "2.4 MB",
 		agents: 2,
 		status: "Synced",
-		icon: FileTextIcon,
+		icon: "/3d-icons/3dicons-folder-dynamic-color.png",
 		date: "Oct 12, 2024",
 	},
 	{
@@ -26,7 +32,7 @@ const MOCK_KNOWLEDGE = [
 		size: "12 KB",
 		agents: 1,
 		status: "Synced",
-		icon: FileTextIcon,
+		icon: "/3d-icons/3dicons-folder-dynamic-color.png",
 		date: "Oct 10, 2024",
 	},
 	{
@@ -36,7 +42,7 @@ const MOCK_KNOWLEDGE = [
 		size: "14 Pages",
 		agents: 3,
 		status: "Syncing...",
-		icon: GlobeIcon,
+		icon: "/3d-icons/3dicons-folder-dynamic-color.png",
 		date: "Today, 10:42 AM",
 	},
 	{
@@ -46,39 +52,89 @@ const MOCK_KNOWLEDGE = [
 		size: "840 KB",
 		agents: 1,
 		status: "Synced",
-		icon: FolderIcon,
+		icon: "/3d-icons/3dicons-folder-dynamic-color.png",
 		date: "Sep 28, 2024",
 	},
 ];
 
 export default function KnowledgePage() {
+	const [knowledge, setKnowledge] = useState(INITIAL_KNOWLEDGE);
+	const [isUploading, setIsUploading] = useState(false);
+	const fileInputRef = useRef<HTMLInputElement>(null);
+
+	const handleFileClick = () => {
+		fileInputRef.current?.click();
+	};
+
+	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		const files = e.target.files;
+		if (files && files.length > 0) {
+			const file = files[0];
+			
+			// Enforce 5MB file size limit
+			if (file.size > 5 * 1024 * 1024) {
+				alert("File is too large. Maximum size is 5MB.");
+				if (fileInputRef.current) fileInputRef.current.value = "";
+				return;
+			}
+			
+			setIsUploading(true);
+			
+			// Simulate network upload delay
+			setTimeout(() => {
+				const newDoc = {
+					id: Date.now().toString(),
+					name: file.name,
+					type: "Document",
+					size: (file.size / 1024 / 1024).toFixed(1) + " MB",
+					agents: 0,
+					status: "Synced",
+					icon: "/3d-icons/3dicons-folder-dynamic-color.png",
+					date: "Just now",
+				};
+				setKnowledge([newDoc, ...knowledge]);
+				setIsUploading(false);
+				if (fileInputRef.current) fileInputRef.current.value = "";
+			}, 2000);
+		}
+	};
+
 	return (
 		<div className="flex flex-col gap-8">
 			{/* Page Header */}
-			<div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+			<div className="flex flex-col justify-between gap-4">
 				<div>
 					<h1 className="text-3xl font-bold tracking-tight">Knowledge Base</h1>
 					<p className="text-muted-foreground mt-1 max-w-xl">Upload documents, import URLs, or write notes. Your AI employees will use this information to answer questions and complete tasks.</p>
 				</div>
-				<div className="flex items-center gap-3">
-					<Button variant="outline" className="h-10 bg-background">
-						<LinkIcon className="w-4 h-4 mr-2" />
-						Sync Website
-					</Button>
-					<CustomButton size="md" showArrow={false}>
-						<UploadCloudIcon className="w-4 h-4 mr-2" />
-						Upload Files
-					</CustomButton>
-				</div>
 			</div>
 
 			{/* Drag & Drop Zone */}
-			<div className="border-2 border-dashed border-border/60 rounded-2xl bg-muted/20 hover:bg-muted/40 transition-colors duration-200 p-10 flex flex-col items-center justify-center text-center cursor-pointer">
+			<input 
+				type="file" 
+				ref={fileInputRef} 
+				onChange={handleFileChange} 
+				className="hidden" 
+				multiple 
+				accept=".pdf,.docx,.csv,.txt,.xlsx"
+			/>
+			<div 
+				onClick={handleFileClick}
+				className={`border-2 border-dashed rounded-2xl bg-muted/20 transition-colors duration-200 p-10 flex flex-col items-center justify-center text-center cursor-pointer ${isUploading ? 'border-primary/50' : 'border-border/60 hover:bg-muted/40'}`}
+			>
 				<div className="w-14 h-14 rounded-full bg-background border border-border shadow-sm flex items-center justify-center mb-4">
-					<UploadCloudIcon className="w-6 h-6 text-primary" />
+					{isUploading ? (
+						<Loader2Icon className="w-6 h-6 text-primary animate-spin" />
+					) : (
+						<UploadCloudIcon className="w-6 h-6 text-primary" />
+					)}
 				</div>
-				<h3 className="font-semibold text-lg text-foreground">Click or drag files to upload</h3>
-				<p className="text-sm text-muted-foreground mt-1 max-w-sm">Supports PDF, DOCX, CSV, TXT, and Excel files up to 50MB each.</p>
+				<h3 className="font-semibold text-lg text-foreground">
+					{isUploading ? "Uploading file..." : "Click or drag files to upload"}
+				</h3>
+				<p className="text-sm text-muted-foreground mt-1 max-w-sm">
+					{isUploading ? "Please wait while we process your document." : "Supports PDF, DOCX, CSV, TXT, and Excel files up to 5MB each."}
+				</p>
 			</div>
 
 			{/* Documents List */}
@@ -91,53 +147,73 @@ export default function KnowledgePage() {
 					</div>
 				</div>
 
-				<div className="rounded-xl border border-border bg-card overflow-hidden">
-					<div className="grid grid-cols-12 gap-4 p-4 border-b border-border bg-muted/40 text-xs font-semibold text-muted-foreground">
-						<div className="col-span-5 sm:col-span-6">Name</div>
-						<div className="col-span-3 sm:col-span-2 hidden sm:block">Size</div>
-						<div className="col-span-4 sm:col-span-2">Access</div>
-						<div className="col-span-3 sm:col-span-2 text-right">Status</div>
-					</div>
-					
-					<div className="divide-y divide-border">
-						{MOCK_KNOWLEDGE.map((item) => (
-							<div key={item.id} className="grid grid-cols-12 gap-4 p-4 items-center hover:bg-muted/20 transition-colors">
-								<div className="col-span-5 sm:col-span-6 flex items-center gap-3">
-									<div className="w-10 h-10 rounded-lg bg-background border border-border flex items-center justify-center shrink-0 shadow-sm">
-										<item.icon className="w-5 h-5 text-muted-foreground" />
+				<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+					{knowledge.map((item) => (
+						<Card key={item.id} className="overflow-hidden border-border/50 bg-card/40 hover:bg-card hover:shadow-sm transition-all duration-300 flex flex-col">
+							<div className="p-5 flex-1 flex flex-col">
+								<div className="flex items-start justify-between mb-4">
+									<div className="w-10 h-10 rounded-xl bg-background border border-border flex items-center justify-center shadow-sm shrink-0 overflow-hidden p-1.5">
+										<img src={item.icon} alt={item.type} className="w-full h-full object-contain" />
 									</div>
-									<div className="flex flex-col min-w-0">
-										<span className="font-medium text-sm text-foreground truncate">{item.name}</span>
-										<span className="text-xs text-muted-foreground truncate">{item.type} • {item.date}</span>
+									<div className="flex items-center gap-1 -mt-2 -mr-2">
+										<TooltipProvider>
+											<Tooltip>
+												<TooltipTrigger render={
+													<Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
+														<EyeIcon className="w-4 h-4" />
+													</Button>
+												} />
+												<TooltipContent side="top">
+													<p>View Source</p>
+												</TooltipContent>
+											</Tooltip>
+											<Tooltip>
+												<TooltipTrigger render={
+													<Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
+														<PencilIcon className="w-4 h-4" />
+													</Button>
+												} />
+												<TooltipContent side="top">
+													<p>Edit Metadata</p>
+												</TooltipContent>
+											</Tooltip>
+											<Tooltip>
+												<TooltipTrigger render={
+													<Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10">
+														<Trash2Icon className="w-4 h-4" />
+													</Button>
+												} />
+												<TooltipContent side="top">
+													<p>Delete</p>
+												</TooltipContent>
+											</Tooltip>
+										</TooltipProvider>
 									</div>
 								</div>
-								<div className="col-span-3 sm:col-span-2 hidden sm:flex text-sm text-muted-foreground">
-									{item.size}
+								
+								<div className="flex flex-col mb-1">
+									<span className="font-semibold text-base text-foreground line-clamp-1">{item.name}</span>
 								</div>
-								<div className="col-span-4 sm:col-span-2 flex items-center gap-1.5 text-sm text-muted-foreground">
-									<UsersIcon className="w-3.5 h-3.5" />
-									{item.agents} Agent{item.agents > 1 ? "s" : ""}
-								</div>
-								<div className="col-span-3 sm:col-span-2 flex items-center justify-end gap-3">
-									<Badge variant={item.status === "Synced" ? "secondary" : "outline"} className={`font-medium ${item.status === "Synced" ? "bg-emerald-500/10 text-emerald-600 border-transparent hover:bg-emerald-500/20" : "text-amber-600 border-amber-500/30 bg-amber-500/5"}`}>
+								
+								<div className="flex items-center gap-2 mt-auto pt-4">
+									<Badge variant={item.status === "Synced" ? "secondary" : "outline"} className={`font-medium text-[10px] ${item.status === "Synced" ? "bg-emerald-500/10 text-emerald-600 border-transparent" : "text-amber-600 border-amber-500/30 bg-amber-500/5"}`}>
 										{item.status}
 									</Badge>
-									<DropdownMenu>
-										<DropdownMenuTrigger asChild>
-											<Button variant="ghost" size="icon" className="h-8 w-8 -mr-2 text-muted-foreground">
-												<MoreHorizontalIcon className="w-4 h-4" />
-											</Button>
-										</DropdownMenuTrigger>
-										<DropdownMenuContent align="end">
-											<DropdownMenuItem>View Source</DropdownMenuItem>
-											<DropdownMenuItem>Manage Access</DropdownMenuItem>
-											<DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
-										</DropdownMenuContent>
-									</DropdownMenu>
+									<span className="text-[11px] text-muted-foreground">{item.type}</span>
+									<span className="text-[11px] text-muted-foreground/50 mx-0.5">•</span>
+									<span className="text-[11px] text-muted-foreground">{item.size}</span>
 								</div>
 							</div>
-						))}
-					</div>
+							
+							<div className="bg-muted/30 px-5 py-3 border-t border-border/40 flex items-center justify-between">
+								<div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
+									<UsersIcon className="w-3.5 h-3.5" />
+									{item.agents} Agent{item.agents !== 1 ? "s" : ""}
+								</div>
+								<span className="text-[11px] text-muted-foreground">{item.date}</span>
+							</div>
+						</Card>
+					))}
 				</div>
 			</div>
 		</div>

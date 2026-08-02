@@ -2,29 +2,24 @@
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { AppBreadcrumbs } from "@/components/layout/app-breadcrumbs";
-import { CustomSidebarTrigger } from "@/components/layout/custom-sidebar-trigger";
-import { navLinks } from "@/components/shared/app-shared";
 import CustomButton from "@/components/shared/Button";
+import { Separator } from "@/components/ui/separator";
 import { CreditsRadial } from "@/components/layout/credits-radial";
+import { WorkersRadial } from "@/components/layout/workers-radial";
 import { BellIcon, ZapIcon } from "lucide-react";
-
-const activeItem = navLinks.find((item) => item.isActive);
 
 export function AppHeader() {
 	return (
 		<header className={cn("pxx-4 mb-6 flex items-center justify-between gap-2 md:px-2")}>
 			<div className="flex items-center gap-3">
-				<CustomSidebarTrigger />
-				<Separator
-					className="mr-2 h-4 data-[orientation=vertical]:self-center"
-					orientation="vertical"
-				/>
-				<AppBreadcrumbs page={activeItem} />
+				{/* Header left area empty or reserved for future content */}
 			</div>
 
 			<div className="flex items-center gap-3">
+				{/* Workers radial */}
+				<WorkersRadial />
+				<Separator orientation="vertical" className="h-6 hidden sm:block" />
+
 				{/* Credits radial */}
 				<CreditsRadial />
 

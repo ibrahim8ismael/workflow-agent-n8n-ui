@@ -30,8 +30,8 @@ export const navGroups: SidebarNavGroup[] = [
 				icon: <UsersIcon />,
 			},
 			{
-				title: "Apps",
-				path: "/apps",
+				title: "Integrations",
+				path: "/integrations",
 				icon: <PlugIcon />,
 			},
 			{

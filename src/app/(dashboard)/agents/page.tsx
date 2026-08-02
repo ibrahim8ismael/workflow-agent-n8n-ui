@@ -1,56 +1,17 @@
 "use client";
+import { useState } from "react";
 
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import CustomButton from "@/components/shared/Button";
-import { PlusIcon, Settings2Icon, ActivityIcon, MoreHorizontalIcon } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow,
-} from '@/components/ui/table';
 
-const MOCK_AGENTS = [
-	{
-		id: "1",
-		name: "Alex",
-		role: "Customer Support Agent",
-		status: "Active",
-		description: "Answers customer queries, processes refunds, and escalates angry customers.",
-		avatar: "A",
-		stats: "1,240 tickets resolved",
-		color: "bg-blue-500",
-	},
-	{
-		id: "2",
-		name: "Sarah",
-		role: "Sales Development Rep",
-		status: "Training",
-		description: "Outbound lead generation, email outreach, and initial qualification.",
-		avatar: "S",
-		stats: "Learning from 52 PDFs",
-		color: "bg-violet-500",
-	},
-	{
-		id: "3",
-		name: "Marcus",
-		role: "HR Assistant",
-		status: "Draft",
-		description: "Onboarding automation and internal policy Q&A for employees.",
-		avatar: "M",
-		stats: "Needs tool configuration",
-		color: "bg-amber-500",
-	},
-];
+import Link from "next/link";
+import { MOCK_AGENTS } from "@/lib/mock-data";
 
 export default function AgentsPage() {
+	const [agents] = useState(MOCK_AGENTS);
 	return (
 		<div className="flex flex-col gap-6">
 			{/* Page Header */}
@@ -59,77 +20,43 @@ export default function AgentsPage() {
 					<h1 className="text-3xl font-bold tracking-tight">Your Workforce</h1>
 					<p className="text-muted-foreground mt-1">Manage and assign tasks to your AI employees.</p>
 				</div>
-				<CustomButton href="/new" size="md">
-					<PlusIcon className="w-4 h-4 mr-2" />
-					Hire Employee
-				</CustomButton>
 			</div>
 
-			{/* Agents Table */}
-			<div className="rounded-lg border bg-card mt-2">
-				<Table>
-					<TableHeader>
-						<TableRow className="border-b hover:bg-transparent">
-							<TableHead className="h-12 px-4 font-medium">Employee</TableHead>
-							<TableHead className="h-12 px-4 font-medium hidden sm:table-cell">Description</TableHead>
-							<TableHead className="h-12 px-4 font-medium">Status</TableHead>
-							<TableHead className="h-12 px-4 font-medium text-right">Actions</TableHead>
-						</TableRow>
-					</TableHeader>
-					<TableBody>
-						{MOCK_AGENTS.map((agent) => (
-							<TableRow key={agent.id} className="hover:bg-muted/50">
-								<TableCell className="px-4 py-3">
-									<div className="flex items-center gap-3">
-										<Avatar className="h-10 w-10 border border-border shadow-sm">
-											<AvatarFallback className={`text-white text-xs font-semibold ${agent.color}`}>
-												{agent.avatar}
-											</AvatarFallback>
-										</Avatar>
-										<div className="flex flex-col min-w-0">
-											<span className="font-semibold text-sm text-foreground truncate">{agent.name}</span>
-											<span className="text-xs font-medium text-muted-foreground truncate">{agent.role}</span>
-										</div>
-									</div>
-								</TableCell>
-								<TableCell className="px-4 py-3 hidden sm:table-cell">
-									<div className="flex flex-col gap-1 max-w-[300px]">
-										<span className="text-sm text-muted-foreground truncate">{agent.description}</span>
-										<div className="flex items-center gap-1.5 text-[11px] text-muted-foreground/80 font-medium">
-											<ActivityIcon className="w-3 h-3" />
-											{agent.stats}
-										</div>
-									</div>
-								</TableCell>
-								<TableCell className="px-4 py-3">
-									<Badge variant={agent.status === "Active" ? "default" : agent.status === "Training" ? "secondary" : "outline"} className={`font-medium ${agent.status === "Active" ? "bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 border-transparent" : agent.status === "Training" ? "bg-violet-500/10 text-violet-600 hover:bg-violet-500/20 border-transparent" : "text-muted-foreground"}`}>
-										{agent.status}
-									</Badge>
-								</TableCell>
-								<TableCell className="px-4 py-3">
-									<div className="flex items-center justify-end gap-2">
-										<Button variant="ghost" size="sm" className="h-8 px-2 hidden lg:flex text-xs font-medium">
-											<Settings2Icon className="w-3.5 h-3.5 mr-1.5" />
-											Manage
-										</Button>
-										<DropdownMenu>
-											<DropdownMenuTrigger asChild>
-												<Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
-													<MoreHorizontalIcon className="w-4 h-4" />
-												</Button>
-											</DropdownMenuTrigger>
-											<DropdownMenuContent align="end">
-												<DropdownMenuItem>Edit Blueprint</DropdownMenuItem>
-												<DropdownMenuItem>Assign Task</DropdownMenuItem>
-												<DropdownMenuItem className="text-destructive">Terminate</DropdownMenuItem>
-											</DropdownMenuContent>
-										</DropdownMenu>
-									</div>
-								</TableCell>
-							</TableRow>
-						))}
-					</TableBody>
-				</Table>
+			{/* Agents Grid */}
+			<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mt-2">
+				{agents.map((agent) => (
+					<Card key={agent.id} className="overflow-hidden border-border/50 bg-card/40 hover:bg-card hover:shadow-sm transition-all duration-300 flex flex-col group">
+						{/* Clickable Area */}
+						<Link href={`/agent/${agent.id}`} className="p-5 flex-1 flex flex-col">
+							<div className="flex items-start justify-between mb-4">
+								<Avatar className="h-12 w-12 border border-border shadow-sm">
+									<AvatarFallback className={`text-white text-lg font-semibold ${agent.color}`}>
+										{agent.avatar}
+									</AvatarFallback>
+								</Avatar>
+								<Badge variant={agent.status === "Active" ? "default" : "secondary"} className={`font-medium ${agent.status === "Active" ? "bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 border-transparent" : "bg-muted text-muted-foreground hover:bg-muted/80 border-transparent"}`}>
+									{agent.status}
+								</Badge>
+							</div>
+							
+							<div className="flex flex-col mb-2">
+								<span className="font-semibold text-lg text-foreground truncate">{agent.name}</span>
+								<span className="text-sm font-medium text-primary truncate mb-3">{agent.role}</span>
+								<p className="text-sm text-muted-foreground line-clamp-3">{agent.description}</p>
+							</div>
+
+							<div className="mt-auto pt-4 flex items-center text-xs text-muted-foreground">
+								<span className="truncate">{agent.stats}</span>
+							</div>
+						</Link>
+
+						<div className="bg-muted/30 px-5 py-3 border-t border-border/40 flex items-center">
+							<CustomButton href={`/agent/${agent.id}`} size="sm" className="w-full justify-center py-1.5 text-xs shadow-sm" showArrow={false}>
+								View
+							</CustomButton>
+						</div>
+					</Card>
+				))}
 			</div>
 		</div>
 	);

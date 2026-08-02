@@ -119,6 +119,17 @@ export function DynamicBarsIcon({ level }: { level: string }) {
 }
 
 // ----------------------------------------------------------------------
+// Constants & Options
+// ----------------------------------------------------------------------
+export const MENTION_OPTIONS = [
+  { id: "agent", label: "Agents", icon: BotIcon, description: "Mention an AI agent" },
+  { id: "skill", label: "Skills", icon: ZapIcon, description: "Mention a specific skill" },
+  { id: "memory", label: "Memory", icon: BrainCircuitIcon, description: "Reference memory context" },
+  { id: "knowledge", label: "Knowledge", icon: CompassIcon, description: "Reference knowledge bases" },
+  { id: "integration", label: "Integrations", icon: CpuIcon, description: "Mention an integration" },
+];
+
+// ----------------------------------------------------------------------
 // Attachment Thumbnail
 // ----------------------------------------------------------------------
 function AttachmentThumb({
@@ -334,6 +345,13 @@ export const PromptInput = React.forwardRef<HTMLDivElement, PromptInputProps>(
     });
     const [isModelSelectOpen, setIsModelSelectOpen] = useState(false);
 
+    const [mentionQuery, setMentionQuery] = useState<{ query: string; startIndex: number; endIndex: number } | null>(null);
+    const [mentionSelectedIndex, setMentionSelectedIndex] = useState(0);
+
+    const filteredMentions = MENTION_OPTIONS.filter((opt) => 
+      opt.label.toLowerCase().includes(mentionQuery?.query.toLowerCase() || "")
+    );
+
     const [attachments, setAttachments] = useState<Attachment[]>([]);
     const [activeAttachment, setActiveAttachment] = useState<{ attachment: Attachment; rect: DOMRect } | null>(null);
 
@@ -390,6 +408,42 @@ export const PromptInput = React.forwardRef<HTMLDivElement, PromptInputProps>(
       if (!isControlled) setLocalValue(val);
       onChange?.(val);
     }, [isControlled, onChange]);
+
+    const updateMentionState = useCallback(() => {
+      if (!textareaRef.current) return;
+      const cursorPosition = textareaRef.current.selectionStart;
+      const textBeforeCursor = valueRef.current.slice(0, cursorPosition);
+      const match = textBeforeCursor.match(/(?:^|\s)@(\w*)$/);
+      if (match) {
+        setMentionQuery({
+          query: match[1],
+          startIndex: cursorPosition - match[1].length - 1,
+          endIndex: cursorPosition,
+        });
+      } else {
+        setMentionQuery(null);
+      }
+    }, []);
+
+    const insertMention = useCallback((option: typeof MENTION_OPTIONS[0]) => {
+      if (!mentionQuery) return;
+      const currentVal = valueRef.current;
+      const newVal = 
+        currentVal.slice(0, mentionQuery.startIndex) + 
+        `@${option.label} ` + 
+        currentVal.slice(mentionQuery.endIndex);
+      
+      handleValueChange(newVal);
+      setMentionQuery(null);
+      
+      setTimeout(() => {
+        if (textareaRef.current) {
+          textareaRef.current.focus();
+          const newCursorPos = mentionQuery.startIndex + option.label.length + 2;
+          textareaRef.current.setSelectionRange(newCursorPos, newCursorPos);
+        }
+      }, 0);
+    }, [mentionQuery, handleValueChange]);
 
     const expand = () => {
       setIsSmoothResize(false); 
@@ -801,12 +855,89 @@ export const PromptInput = React.forwardRef<HTMLDivElement, PromptInputProps>(
               .prompt-scrollbar:hover::-webkit-scrollbar-thumb { background: hsl(var(--muted-foreground) / 0.3); }
             `}} />
 
+            {mentionQuery && filteredMentions.length > 0 && (
+              <div 
+                className="absolute left-4 bottom-full mb-2 z-50 w-64 rounded-xl border border-border bg-card/95 p-1.5 shadow-xl backdrop-blur-md flex flex-col gap-0.5 animate-in fade-in slide-in-from-bottom-2"
+              >
+                {filteredMentions.map((option, idx) => {
+                  const Icon = option.icon;
+                  return (
+                    <button
+                      key={option.id}
+                      type="button"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => insertMention(option)}
+                      className={cn(
+                        "flex items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium transition-colors cursor-default outline-none",
+                        idx === mentionSelectedIndex ? "bg-accent/80 text-foreground" : "text-foreground/70 hover:bg-accent/50 hover:text-foreground"
+                      )}
+                    >
+                      <div className={cn(
+                        "flex h-7 w-7 items-center justify-center rounded-md border transition-colors",
+                        idx === mentionSelectedIndex ? "bg-background border-border shadow-sm text-foreground" : "bg-transparent border-transparent text-muted-foreground"
+                      )}>
+                        <Icon className="size-4" />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="leading-tight text-[13px]">{option.label}</span>
+                        <span className="text-[10px] text-muted-foreground font-normal leading-tight mt-0.5">{option.description}</span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
             <textarea
               ref={textareaRef}
               value={value}
-              onChange={(e) => handleValueChange(e.target.value)}
+              onChange={(e) => {
+                handleValueChange(e.target.value);
+                const cursorPosition = e.target.selectionStart;
+                const textBeforeCursor = e.target.value.slice(0, cursorPosition);
+                const match = textBeforeCursor.match(/(?:^|\s)@(\w*)$/);
+                if (match) {
+                  setMentionQuery({
+                    query: match[1],
+                    startIndex: cursorPosition - match[1].length - 1,
+                    endIndex: cursorPosition,
+                  });
+                  setMentionSelectedIndex(0);
+                } else {
+                  setMentionQuery(null);
+                }
+              }}
+              onKeyUp={(e) => {
+                if (["ArrowLeft", "ArrowRight", "Backspace", "Delete"].includes(e.key)) {
+                  updateMentionState();
+                }
+              }}
+              onClick={() => updateMentionState()}
               onScroll={updateFades}
               onKeyDown={(e) => {
+                if (mentionQuery && filteredMentions.length > 0) {
+                  if (e.key === "ArrowUp") {
+                    e.preventDefault();
+                    setMentionSelectedIndex((prev) => (prev > 0 ? prev - 1 : filteredMentions.length - 1));
+                    return;
+                  }
+                  if (e.key === "ArrowDown") {
+                    e.preventDefault();
+                    setMentionSelectedIndex((prev) => (prev < filteredMentions.length - 1 ? prev + 1 : 0));
+                    return;
+                  }
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    insertMention(filteredMentions[mentionSelectedIndex]);
+                    return;
+                  }
+                  if (e.key === "Escape") {
+                    e.preventDefault();
+                    setMentionQuery(null);
+                    return;
+                  }
+                }
+
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
                   handleSubmit();
