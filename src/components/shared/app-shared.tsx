@@ -39,6 +39,11 @@ export const navGroups: SidebarNavGroup[] = [
 				path: "/knowledge",
 				icon: <FileTextIcon />,
 			},
+			{
+				title: "Settings",
+				path: "/settings",
+				icon: <SettingsIcon />,
+			},
 		],
 	},
 	{

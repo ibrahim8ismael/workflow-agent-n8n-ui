@@ -1,2 +1,7 @@
 export { SettingsProvider, useSettings } from "./settings-provider";
-export { SettingsModal } from "./settings-modal";
+export { SettingsView } from "./settings-view";
+export {
+  SettingsSection,
+  SettingsField,
+  SettingsDivider,
+} from "./settings-primitives";
