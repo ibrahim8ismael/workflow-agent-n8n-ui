@@ -3,14 +3,12 @@ import {
   UserIcon,
   BuildingIcon,
   CreditCardIcon,
-  KeyIcon,
   BellIcon,
   ShieldCheckIcon,
   UsersIcon,
   PlugIcon,
   DatabaseIcon,
   MessageCircleIcon,
-  GlobeIcon,
 } from "lucide-react";
 
 export type SettingsPageId =

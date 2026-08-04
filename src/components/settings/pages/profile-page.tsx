@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -9,29 +10,72 @@ import {
   SettingsDivider,
 } from "@/components/settings/settings-primitives";
 import { useAuthStore } from "@/stores/auth-store";
-import { CameraIcon } from "lucide-react";
+import { updateMe } from "@/lib/api/users";
+import { ApiError } from "@/lib/api/client";
+import { CameraIcon, Loader2Icon } from "lucide-react";
 
 export function ProfilePage() {
   const user = useAuthStore((s) => s.user);
+  const setUser = useAuthStore((s) => s.setUser);
+
   const name = user?.name || user?.email?.split("@")[0] || "Woops User";
-  const email = user?.email || "";
   const nameParts = name.split(" ");
-  const firstName = nameParts[0] ?? "";
-  const lastName = nameParts.slice(1).join(" ") ?? "";
+  const firstNameInitial = nameParts[0] ?? "";
+  const lastNameInitial = nameParts.slice(1).join(" ");
+
+  const [firstName, setFirstName] = React.useState(firstNameInitial);
+  const [lastName, setLastName] = React.useState(lastNameInitial);
+  const [saving, setSaving] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const [success, setSuccess] = React.useState(false);
+
+  React.useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setFirstName(firstNameInitial);
+    setLastName(lastNameInitial);
+  }, [firstNameInitial, lastNameInitial]);
+
+  const isDirty =
+    firstName !== firstNameInitial || lastName !== lastNameInitial;
+
+  const handleSave = async () => {
+    if (!isDirty || saving) return;
+    setSaving(true);
+    setError(null);
+    setSuccess(false);
+    try {
+      const fullName = [firstName, lastName].filter(Boolean).join(" ");
+      const updated = await updateMe({ name: fullName || undefined });
+      setUser(updated);
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+    } catch (err) {
+      setError(
+        err instanceof ApiError
+          ? err.message
+          : "Could not save changes. Please try again.",
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setFirstName(firstNameInitial);
+    setLastName(lastNameInitial);
+    setError(null);
+    setSuccess(false);
+  };
 
   return (
     <div className="flex h-full flex-col">
-
-      {/* Scrollable body */}
       <div className="flex-1 overflow-y-auto">
         <div className="mx-auto max-w-[680px] space-y-6 px-10 py-8">
 
-          {/* ── Personal information ── */}
           <SettingsSection
             title="Personal Information"
             description="Your public profile details visible to teammates in your workspace."
           >
-            {/* Avatar upload row */}
             <div className="flex items-center gap-5">
               <div className="relative shrink-0">
                 <Avatar className="size-16 rounded-xl">
@@ -42,8 +86,12 @@ export function ProfilePage() {
                     {name.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                <button className="absolute -bottom-1 -right-1 flex size-6 items-center justify-center rounded-full border border-border bg-background shadow-sm hover:bg-muted transition-colors">
-                  <CameraIcon className="size-3 text-muted-foreground" />
+                <button
+                  className="absolute -bottom-1 -right-1 flex size-6 items-center justify-center rounded-full border border-border bg-background shadow-sm text-muted-foreground cursor-not-allowed"
+                  title="Avatar upload coming soon"
+                  disabled
+                >
+                  <CameraIcon className="size-3" />
                 </button>
               </div>
               <div className="min-w-0 flex-1">
@@ -51,31 +99,28 @@ export function ProfilePage() {
                 <p className="mt-0.5 text-[12px] text-muted-foreground">
                   JPG, PNG or GIF · Maximum 1 MB
                 </p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="mt-2.5 h-7 text-[12px]"
-                >
-                  Upload Photo
-                </Button>
+                <p className="mt-2 text-[11px] text-muted-foreground italic">
+                  Avatar upload coming soon
+                </p>
               </div>
             </div>
 
             <SettingsDivider />
 
-            {/* Name row */}
             <div className="grid grid-cols-2 gap-4">
               <SettingsField label="First Name" htmlFor="first-name">
                 <Input
                   id="first-name"
-                  defaultValue={firstName}
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
                   className="h-9"
                 />
               </SettingsField>
               <SettingsField label="Last Name" htmlFor="last-name">
                 <Input
                   id="last-name"
-                  defaultValue={lastName}
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
                   className="h-9"
                 />
               </SettingsField>
@@ -85,25 +130,13 @@ export function ProfilePage() {
               <Input
                 id="email"
                 type="email"
-                defaultValue={email}
-                className="h-9"
-              />
-            </SettingsField>
-
-            <SettingsField
-              label="Job Title"
-              htmlFor="job-title"
-              hint="Visible to teammates and in AI Employee activity logs."
-            >
-              <Input
-                id="job-title"
-                placeholder="e.g. Head of Operations"
-                className="h-9"
+                value={user?.email ?? ""}
+                readOnly
+                className="h-9 opacity-60 cursor-not-allowed"
               />
             </SettingsField>
           </SettingsSection>
 
-          {/* ── Preferences ── */}
           <SettingsSection
             title="Preferences"
             description="Customize your personal experience inside Woops."
@@ -112,7 +145,8 @@ export function ProfilePage() {
               <Input
                 id="language"
                 defaultValue="English (US)"
-                className="h-9"
+                readOnly
+                className="h-9 opacity-60 cursor-not-allowed"
               />
             </SettingsField>
 
@@ -121,7 +155,12 @@ export function ProfilePage() {
               hint="Controls the visual appearance of the interface."
               htmlFor="theme"
             >
-              <Input id="theme" defaultValue="System Default" className="h-9" />
+              <Input
+                id="theme"
+                defaultValue="System Default"
+                readOnly
+                className="h-9 opacity-60 cursor-not-allowed"
+              />
             </SettingsField>
           </SettingsSection>
 
@@ -129,17 +168,40 @@ export function ProfilePage() {
         </div>
       </div>
 
-      {/* ── Sticky action bar ── */}
       <div className="shrink-0 border-t border-border/50 bg-background/95 px-10 py-4 backdrop-blur-sm">
         <div className="mx-auto flex max-w-[680px] items-center justify-between">
-          <p className="text-[12px] text-muted-foreground">
-            Changes apply to your personal account only.
-          </p>
+          <div className="flex items-center gap-3">
+            <p className="text-[12px] text-muted-foreground">
+              Changes apply to your personal account only.
+            </p>
+            {success && (
+              <span className="text-[12px] text-emerald-600 font-medium">
+                Saved!
+              </span>
+            )}
+            {error && (
+              <span role="alert" className="text-[12px] text-destructive font-medium">
+                {error}
+              </span>
+            )}
+          </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleCancel}
+              disabled={!isDirty || saving}
+            >
               Cancel
             </Button>
-            <Button size="sm">Save Changes</Button>
+            <Button
+              size="sm"
+              onClick={handleSave}
+              disabled={!isDirty || saving}
+            >
+              {saving && <Loader2Icon className="size-3.5 animate-spin mr-1.5" />}
+              {saving ? "Saving…" : "Save Changes"}
+            </Button>
           </div>
         </div>
       </div>
