@@ -1,74 +1,142 @@
 "use client";
 
-import { SearchInput } from "@/components/ui/search-input";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  SettingsSection,
+  SettingsField,
+  SettingsDivider,
+} from "@/components/settings/settings-primitives";
 
 export function GeneralPage() {
   return (
-    <div className="flex flex-col gap-6 p-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Workspace</CardTitle>
-          <CardDescription>
-            This is your workspace name and logo shown across the platform.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-4">
-          <div className="grid gap-2">
-            <label className="text-sm font-medium" htmlFor="workspace-name">
-              Workspace Name
-            </label>
-            <Input id="workspace-name" defaultValue="Woops HQ" className="max-w-sm" />
-          </div>
-          <div className="grid gap-2">
-            <label className="text-sm font-medium" htmlFor="workspace-slug">
-              Workspace Slug
-            </label>
-            <Input id="workspace-slug" defaultValue="woops-hq" className="max-w-sm" />
-          </div>
-          <div className="flex items-center justify-between rounded-xl border p-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 font-heading text-sm font-semibold text-white">
-                W
+    // Page root: full height, flex column so sticky footer works
+    <div className="flex h-full flex-col">
+
+      {/* Scrollable body */}
+      <div className="flex-1 overflow-y-auto">
+        {/* Inner content — constrained width + padding */}
+        <div className="mx-auto max-w-[680px] space-y-6 px-10 py-8">
+
+          {/* ── Workspace section ── */}
+          <SettingsSection
+            title="Workspace"
+            description="Manage your workspace name, logo, and public slug used across the platform."
+          >
+            <SettingsField label="Workspace Name" htmlFor="workspace-name">
+              <Input
+                id="workspace-name"
+                defaultValue="Woops HQ"
+                className="h-9"
+              />
+            </SettingsField>
+
+            <SettingsField
+              label="Workspace Slug"
+              hint="Used in URLs and @mentions. Lowercase letters, numbers, and hyphens only."
+              htmlFor="workspace-slug"
+            >
+              <div className="flex items-center rounded-lg border border-input bg-background ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+                <span className="select-none border-r border-border/60 px-3 py-2 text-[13px] text-muted-foreground bg-muted/50 rounded-l-lg">
+                  woops.ai/
+                </span>
+                <input
+                  id="workspace-slug"
+                  defaultValue="woops-hq"
+                  className="flex-1 bg-transparent px-3 py-2 text-[13px] outline-none placeholder:text-muted-foreground"
+                />
               </div>
+            </SettingsField>
+
+            <SettingsDivider />
+
+            <SettingsField
+              label="Workspace Logo"
+              hint="JPG, PNG or GIF · Maximum 1 MB"
+            >
+              <div className="flex items-center gap-4 rounded-xl border border-border/60 bg-muted/30 p-4">
+                <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 text-sm font-bold text-white shadow-sm">
+                  W
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[13px] font-medium">Woops HQ</p>
+                  <p className="text-[12px] text-muted-foreground">
+                    No custom logo uploaded
+                  </p>
+                </div>
+                <Button variant="outline" size="sm" className="shrink-0">
+                  Upload Logo
+                </Button>
+              </div>
+            </SettingsField>
+          </SettingsSection>
+
+          {/* ── Localization section ── */}
+          <SettingsSection
+            title="Localization"
+            description="Configure timezone, language, and region for your workspace."
+          >
+            <SettingsField
+              label="Timezone"
+              hint="Used for scheduling, timestamps, and notifications."
+              htmlFor="timezone"
+            >
+              <Input
+                id="timezone"
+                defaultValue="Africa/Cairo (GMT+2)"
+                className="h-9"
+              />
+            </SettingsField>
+
+            <SettingsField label="Language" htmlFor="language">
+              <Input
+                id="language"
+                defaultValue="English (US)"
+                className="h-9"
+              />
+            </SettingsField>
+          </SettingsSection>
+
+          {/* ── Danger zone ── */}
+          <SettingsSection
+            title="Danger Zone"
+            description="Irreversible actions. Proceed with caution."
+          >
+            <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="text-sm font-medium">Logo</p>
-                <p className="text-xs text-muted-foreground">JPG, PNG or GIF, 1MB max</p>
+                <p className="text-[13px] font-medium">Delete Workspace</p>
+                <p className="text-[12px] text-muted-foreground">
+                  Permanently delete this workspace and all its data.
+                </p>
               </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="shrink-0 border-destructive/40 text-destructive hover:bg-destructive/5 hover:border-destructive"
+              >
+                Delete Workspace
+              </Button>
             </div>
-            <Button variant="outline" size="sm">Change</Button>
-          </div>
-        </CardContent>
-      </Card>
+          </SettingsSection>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Timezone</CardTitle>
-          <CardDescription>
-            Used for scheduling and displaying timestamps.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-4">
-          <div className="grid gap-2">
-            <label className="text-sm font-medium" htmlFor="timezone">
-              Timezone
-            </label>
-            <Input id="timezone" defaultValue="Africa/Cairo (GMT+2)" className="max-w-sm" />
-          </div>
-        </CardContent>
-      </Card>
+          {/* Bottom padding so content clears sticky footer */}
+          <div className="h-4" />
+        </div>
+      </div>
 
-      <div className="flex justify-end">
-        <Button>Save Changes</Button>
+      {/* ── Sticky action bar ── */}
+      <div className="shrink-0 border-t border-border/50 bg-background/95 px-10 py-4 backdrop-blur-sm">
+        <div className="mx-auto flex max-w-[680px] items-center justify-between">
+          <p className="text-[12px] text-muted-foreground">
+            Changes are saved to your workspace.
+          </p>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm">
+              Cancel
+            </Button>
+            <Button size="sm">Save Changes</Button>
+          </div>
+        </div>
       </div>
     </div>
   );

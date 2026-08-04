@@ -1,12 +1,10 @@
 "use client";
 
 import * as React from "react";
-import {
-  type SettingsPageId,
-} from "@/components/settings/settings-data";
+import { useRouter } from "next/navigation";
+import { type SettingsPageId } from "@/components/settings/settings-data";
 
 interface SettingsContextValue {
-  isOpen: boolean;
   activePage: SettingsPageId;
   openSettings: (page?: SettingsPageId) => void;
   closeSettings: () => void;
@@ -14,29 +12,27 @@ interface SettingsContextValue {
 
 const SettingsContext = React.createContext<SettingsContextValue | null>(null);
 
-function SettingsProviderInner({ children }: { children: React.ReactNode }) {
-  const [isOpen, setIsOpen] = React.useState(false);
+export function SettingsProvider({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
   const [activePage, setActivePage] = React.useState<SettingsPageId>("general");
 
-  const openSettings = React.useCallback((page?: SettingsPageId) => {
-    setActivePage(page ?? "general");
-    setIsOpen(true);
-  }, []);
+  const openSettings = React.useCallback(
+    (page?: SettingsPageId) => {
+      const target = page ?? "general";
+      setActivePage(target);
+      router.push(`/settings/${target}`);
+    },
+    [router]
+  );
 
   const closeSettings = React.useCallback(() => {
-    setIsOpen(false);
-  }, []);
+    router.push("/");
+  }, [router]);
 
   return (
-    <SettingsContext.Provider value={{ isOpen, activePage, openSettings, closeSettings }}>
+    <SettingsContext.Provider value={{ activePage, openSettings, closeSettings }}>
       {children}
     </SettingsContext.Provider>
-  );
-}
-
-export function SettingsProvider({ children }: { children: React.ReactNode }) {
-  return (
-    <SettingsProviderInner>{children}</SettingsProviderInner>
   );
 }
 
