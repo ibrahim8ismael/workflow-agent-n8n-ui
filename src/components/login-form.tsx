@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import CustomButton from "@/components/shared/Button"
 import {
   Field,
   FieldDescription,
@@ -12,7 +12,7 @@ import {
   FieldLabel,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import { GalleryVerticalEndIcon, Loader2Icon } from "lucide-react"
+import { Loader2Icon } from "lucide-react"
 import { requestOtp } from "@/lib/api/auth"
 import { ApiError } from "@/lib/api/client"
 
@@ -45,29 +45,23 @@ export function LoginForm({
   };
 
   return (
-    <div className={cn("flex flex-col gap-6", className)} {...props}>
+    <div className={cn("flex flex-col gap-7", className)} {...props}>
       <form onSubmit={handleSubmit}>
         <FieldGroup>
-          <div className="flex flex-col items-center gap-2 text-center">
-            <a
-              href="#"
-              className="flex flex-col items-center gap-2 font-medium"
-            >
-              <div className="flex size-8 items-center justify-center rounded-md">
-                <GalleryVerticalEndIcon className="size-6" />
-              </div>
-              <span className="sr-only">Woops</span>
-            </a>
-            <h1 className="text-xl font-bold">Welcome to Woops</h1>
-            <FieldDescription>
-              Enter your email and we&apos;ll send you a one-time code.
+          <div className="flex flex-col gap-2 text-center">
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">
+              Sign in or sign up
+            </h1>
+            <FieldDescription className="mx-auto max-w-xs leading-relaxed">
+              Start creating with Woops
             </FieldDescription>
           </div>
           <Field>
-            <FieldLabel htmlFor="email">Email</FieldLabel>
+            <FieldLabel className="text-foreground" htmlFor="email">Email address</FieldLabel>
             <Input
               id="email"
               type="email"
+              className="h-11 rounded-xl border-border bg-card px-4 shadow-sm focus-visible:ring-primary/20"
               placeholder="you@company.com"
               required
               autoComplete="email"
@@ -80,16 +74,28 @@ export function LoginForm({
             <FieldError role="alert" className="-mt-2">{error}</FieldError>
           )}
           <Field>
-            <Button type="submit" disabled={isSubmitting} className="w-full">
+            <CustomButton
+              type="submit"
+              disabled={isSubmitting}
+              showArrow={!isSubmitting}
+              aria-busy={isSubmitting}
+              className="h-11 w-full gap-2 rounded-xl"
+            >
               {isSubmitting && <Loader2Icon className="size-4 animate-spin" />}
-              {isSubmitting ? "Sending code…" : "Continue with email"}
-            </Button>
+              {isSubmitting ? "Sending code..." : "Continue with email"}
+            </CustomButton>
           </Field>
         </FieldGroup>
       </form>
-      <FieldDescription className="px-6 text-center">
-        By continuing, you agree to our <a href="#">Terms of Service</a>{" "}
-        and <a href="#">Privacy Policy</a>.
+      <FieldDescription className="px-2 text-center leading-relaxed">
+        By continuing, you agree to our{" "}
+        <a className="font-medium text-foreground underline underline-offset-4 hover:text-primary" href="#">
+          Terms of Service
+        </a>{" "}
+        and{" "}
+        <a className="font-medium text-foreground underline underline-offset-4 hover:text-primary" href="#">
+          Privacy Policy
+        </a>.
       </FieldDescription>
     </div>
   )

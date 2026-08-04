@@ -1,4 +1,5 @@
 import { OtpForm } from "@/components/otp-form"
+import { AuthShell } from "@/components/auth/auth-shell"
 
 export default async function OtpVerifyPage({
   searchParams,
@@ -8,10 +9,8 @@ export default async function OtpVerifyPage({
   const { email } = await searchParams;
 
   return (
-    <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-background p-6 md:p-10">
-      <div className="w-full max-w-sm">
-        <OtpForm email={email} />
-      </div>
-    </div>
+    <AuthShell>
+      <OtpForm email={email} />
+    </AuthShell>
   )
 }

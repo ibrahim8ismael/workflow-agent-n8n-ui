@@ -15,11 +15,73 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Woops Automation",
-  description: "Modern SaaS platform",
-  icons: {
-    icon: "/logo/logo.png",
-  },
+	metadataBase: new URL(
+		process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
+	),
+	title: {
+		default: "Woops | Build your AI workforce",
+		template: "%s | Woops",
+	},
+	description:
+		"Build, deploy, and manage AI employees that work for your business.",
+	applicationName: "Woops",
+	keywords: [
+		"AI employees",
+		"AI workforce",
+		"business automation",
+		"digital employees",
+	],
+	authors: [{ name: "Woops" }],
+	creator: "Woops",
+	publisher: "Woops",
+	alternates: {
+		canonical: "/",
+	},
+	icons: {
+		icon: [
+			{ url: "/logo/logo.png", sizes: "2000x2000", type: "image/png" },
+			{ url: "/logo/logo.svg", type: "image/svg+xml" },
+		],
+		shortcut: ["/logo/logo.png"],
+		apple: [
+			{ url: "/logo/logo.png", sizes: "2000x2000", type: "image/png" },
+		],
+	},
+	openGraph: {
+		title: "Woops | Build your AI workforce",
+		description:
+			"Build, deploy, and manage AI employees that work for your business.",
+		url: "/",
+		siteName: "Woops",
+		images: [
+			{
+				url: "/logo/logo.png",
+				width: 2000,
+				height: 2000,
+				alt: "Woops AI workforce platform",
+			},
+		],
+		locale: "en_US",
+		type: "website",
+	},
+	twitter: {
+		card: "summary",
+		title: "Woops | Build your AI workforce",
+		description:
+			"Build, deploy, and manage AI employees that work for your business.",
+		images: ["/logo/logo.png"],
+	},
+	robots: {
+		index: true,
+		follow: true,
+		googleBot: {
+			index: true,
+			follow: true,
+			"max-image-preview": "large",
+			"max-snippet": -1,
+			"max-video-preview": -1,
+		},
+	},
 };
 
 export default function RootLayout({

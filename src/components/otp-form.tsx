@@ -1,9 +1,10 @@
 "use client"
 
 import { useState } from "react"
+import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import CustomButton from "@/components/shared/Button"
 import {
   Field,
   FieldDescription,
@@ -17,10 +18,14 @@ import {
   InputOTPSeparator,
   InputOTPSlot,
 } from "@/components/ui/input-otp"
-import { GalleryVerticalEndIcon, Loader2Icon } from "lucide-react"
+import { Loader2Icon } from "lucide-react"
 import { requestOtp, verifyOtp, fetchMe } from "@/lib/api/auth"
 import { ApiError } from "@/lib/api/client"
 import { useAuthStore } from "@/stores/auth-store"
+
+const RESEND_COOLDOWN_SECONDS = 30;
+const otpSlotClassName =
+	"size-9 bg-white text-base font-semibold text-slate-900 shadow-sm data-[active=true]:border-primary data-[active=true]:ring-primary/20 sm:size-12";
 
 export function OtpForm({
   email,
@@ -34,15 +39,25 @@ export function OtpForm({
   const [isResending, setIsResending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [resent, setResent] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(RESEND_COOLDOWN_SECONDS);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!email || otp.length !== 6 || isSubmitting) return;
+  useEffect(() => {
+    if (resendCooldown === 0) return;
+
+    const timeout = window.setTimeout(() => {
+      setResendCooldown((current) => Math.max(current - 1, 0));
+    }, 1000);
+
+    return () => window.clearTimeout(timeout);
+  }, [resendCooldown]);
+
+  const handleVerify = async (code: string) => {
+    if (!email || code.length !== 6 || isSubmitting) return;
 
     setIsSubmitting(true);
     setError(null);
     try {
-      const { accessToken } = await verifyOtp(email, otp);
+      const { accessToken } = await verifyOtp(email, code);
       const user = await fetchMe();
       signIn(user, accessToken);
       router.replace("/");
@@ -60,13 +75,20 @@ export function OtpForm({
     }
   };
 
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    await handleVerify(otp);
+  };
+
   const handleResend = async () => {
-    if (!email || isResending) return;
+    if (!email || isResending || resendCooldown > 0) return;
     setIsResending(true);
+    setResent(false);
     setError(null);
     try {
       await requestOtp(email);
       setResent(true);
+      setResendCooldown(RESEND_COOLDOWN_SECONDS);
     } catch (err) {
       if (err instanceof ApiError) {
         setError(err.message);
@@ -78,54 +100,62 @@ export function OtpForm({
     }
   };
 
+	const resendLabel =
+		isResending
+			? "Resending..."
+			: resendCooldown > 0
+				? `Resend in ${resendCooldown}s`
+				: "Resend code";
+
   return (
-    <div className={cn("flex flex-col gap-6", className)} {...props}>
+    <div className={cn("flex flex-col gap-7", className)} {...props}>
       <form onSubmit={handleSubmit}>
         <FieldGroup>
-          <div className="flex flex-col items-center gap-2 text-center">
-            <a
-              href="#"
-              className="flex flex-col items-center gap-2 font-medium"
-            >
-              <div className="flex size-8 items-center justify-center rounded-md">
-                <GalleryVerticalEndIcon className="size-6" />
-              </div>
-              <span className="sr-only">Woops</span>
-            </a>
-            <h1 className="text-xl font-bold">Verify your account</h1>
-            <FieldDescription>
+          <div className="flex flex-col gap-2 text-center">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+              Secure sign in
+            </p>
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+              Check your inbox
+            </h1>
+            <FieldDescription className="mx-auto max-w-sm leading-relaxed">
               {email ? (
                 <>
-                  We sent a 6-digit code to{" "}
-                  <span className="font-medium text-foreground">{email}</span>.
+                  We sent a 6-digit verification code to{" "}
+                  <span className="font-medium text-slate-900">{email}</span>.
                 </>
               ) : (
-                "We have sent a verification code to your email."
+                "Enter the verification code we sent to your email."
               )}
             </FieldDescription>
           </div>
-          <Field className="flex flex-col items-center justify-center">
+          <Field className="flex flex-col items-center justify-center gap-3">
             <FieldLabel htmlFor="otp" className="sr-only">One-Time Password</FieldLabel>
             <InputOTP
               maxLength={6}
               id="otp"
+              containerClassName="w-full justify-center"
+              aria-invalid={Boolean(error)}
               value={otp}
               onChange={(value) => {
                 setOtp(value);
                 setError(null);
+                if (value.length === 6) {
+                  void handleVerify(value);
+                }
               }}
               disabled={isSubmitting}
             >
               <InputOTPGroup>
-                <InputOTPSlot index={0} />
-                <InputOTPSlot index={1} />
-                <InputOTPSlot index={2} />
+                <InputOTPSlot className={cn(otpSlotClassName, error && "border-destructive data-[active=true]:border-destructive data-[active=true]:ring-destructive/20")} index={0} />
+                <InputOTPSlot className={cn(otpSlotClassName, error && "border-destructive data-[active=true]:border-destructive data-[active=true]:ring-destructive/20")} index={1} />
+                <InputOTPSlot className={cn(otpSlotClassName, error && "border-destructive data-[active=true]:border-destructive data-[active=true]:ring-destructive/20")} index={2} />
               </InputOTPGroup>
               <InputOTPSeparator />
               <InputOTPGroup>
-                <InputOTPSlot index={3} />
-                <InputOTPSlot index={4} />
-                <InputOTPSlot index={5} />
+                <InputOTPSlot className={cn(otpSlotClassName, error && "border-destructive data-[active=true]:border-destructive data-[active=true]:ring-destructive/20")} index={3} />
+                <InputOTPSlot className={cn(otpSlotClassName, error && "border-destructive data-[active=true]:border-destructive data-[active=true]:ring-destructive/20")} index={4} />
+                <InputOTPSlot className={cn(otpSlotClassName, error && "border-destructive data-[active=true]:border-destructive data-[active=true]:ring-destructive/20")} index={5} />
               </InputOTPGroup>
             </InputOTP>
           </Field>
@@ -133,24 +163,37 @@ export function OtpForm({
             <FieldError role="alert" className="text-center">{error}</FieldError>
           )}
           <Field>
-            <Button type="submit" className="w-full" disabled={isSubmitting || otp.length !== 6}>
+            <CustomButton
+              type="submit"
+              className="h-11 w-full gap-2 rounded-xl"
+              disabled={isSubmitting || otp.length !== 6}
+              showArrow={!isSubmitting}
+              aria-busy={isSubmitting}
+            >
               {isSubmitting && <Loader2Icon className="size-4 animate-spin" />}
-              {isSubmitting ? "Verifying…" : "Verify & sign in"}
-            </Button>
+              {isSubmitting ? "Verifying..." : "Verify"}
+            </CustomButton>
           </Field>
         </FieldGroup>
       </form>
-      <FieldDescription className="px-6 text-center">
-        Didn&apos;t receive the code?{" "}
+      <div className="flex flex-col items-center gap-2 text-center">
+        <FieldDescription>
+          Didn&apos;t receive the code?
+        </FieldDescription>
         <button
           type="button"
           onClick={handleResend}
-          disabled={isResending || !email}
-          className="cursor-pointer underline underline-offset-4 hover:text-primary disabled:opacity-50"
+          disabled={isResending || resendCooldown > 0 || !email}
+          className="cursor-pointer text-sm font-medium text-primary underline underline-offset-4 transition-colors hover:text-primary/80 disabled:cursor-not-allowed disabled:text-muted-foreground disabled:no-underline"
         >
-          {isResending ? "Resending…" : resent ? "Resent — check your inbox" : "Resend"}
+          {resendLabel}
         </button>
-      </FieldDescription>
+        {resent && resendCooldown > 0 && (
+          <p className="text-xs text-emerald-600" role="status">
+            A new code was sent. Check your inbox.
+          </p>
+        )}
+      </div>
     </div>
   )
 }
