@@ -5,8 +5,6 @@ import { X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogTitle,
 } from "@/components/ui/dialog";
 import { useSettings } from "@/components/settings/settings-provider";
 import { SETTINGS_NAV, PAGE_META, type SettingsPageId } from "@/components/settings/settings-data";
@@ -40,7 +38,7 @@ function SidebarNav({
   const q = searchQuery.toLowerCase();
 
   return (
-    <nav className="flex flex-col gap-6 overflow-y-auto px-3 py-4">
+    <nav className="flex flex-col gap-5 overflow-y-auto px-3 py-2">
       {SETTINGS_NAV.map((group) => {
         const filtered = group.items.filter(
           (item) =>
@@ -52,8 +50,8 @@ function SidebarNav({
         if (filtered.length === 0) return null;
 
         return (
-          <div key={group.id} className="flex flex-col gap-1">
-            <span className="px-2 py-1 text-xs font-medium text-muted-foreground">
+          <div key={group.id} className="flex flex-col gap-0.5">
+            <span className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
               {group.label}
             </span>
             {filtered.map((item) => {
@@ -63,16 +61,20 @@ function SidebarNav({
                 <button
                   key={item.id}
                   onClick={() => onSelect(item.id)}
-                  className={`flex items-center gap-2.5 rounded-lg px-2 py-2 text-sm font-medium transition-colors ${
+                  className={`flex items-center gap-2.5 rounded-lg px-2 py-2 text-sm font-medium transition-all ${
                     isActive
-                      ? "bg-primary/10 text-primary"
+                      ? "bg-primary text-primary-foreground shadow-sm"
                       : "text-muted-foreground hover:bg-muted hover:text-foreground"
                   }`}
                 >
-                  <Icon className="size-4 shrink-0" />
+                  <Icon className="size-[15px] shrink-0" />
                   <span className="flex-1 text-left">{item.label}</span>
                   {item.badge && (
-                    <span className="rounded-full bg-muted px-1.5 py-0.5 text-xs">
+                    <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${
+                      isActive
+                        ? "bg-primary-foreground/20 text-primary-foreground"
+                        : "bg-muted text-muted-foreground"
+                    }`}>
                       {item.badge}
                     </span>
                   )}
@@ -88,14 +90,14 @@ function SidebarNav({
 
 function SidebarFooter() {
   return (
-    <div className="border-t p-3">
-      <div className="flex items-center gap-2 rounded-lg bg-muted/60 px-3 py-2">
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-xs font-semibold text-white">
+    <div className="border-t border-border/50 p-3">
+      <div className="flex items-center gap-2.5 rounded-lg bg-muted/50 px-3 py-2.5">
+        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 text-[11px] font-bold text-white">
           A
         </div>
         <div className="flex-1 min-w-0">
-          <p className="truncate text-sm font-medium">Ahmed Hassan</p>
-          <p className="truncate text-xs text-muted-foreground">ahmed@woops.ai</p>
+          <p className="truncate text-[13px] font-semibold leading-tight">Ahmed Hassan</p>
+          <p className="truncate text-[11px] text-muted-foreground leading-tight">ahmed@woops.ai</p>
         </div>
       </div>
     </div>
@@ -104,13 +106,13 @@ function SidebarFooter() {
 
 function WorkspaceHeader() {
   return (
-    <div className="flex items-center gap-3 px-4 py-4">
-      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 font-heading text-sm font-semibold text-white">
+    <div className="flex items-center gap-2.5 px-4 py-4">
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 text-[13px] font-bold text-white">
         W
       </div>
       <div className="flex-1 min-w-0">
-        <p className="truncate text-sm font-semibold">Woops HQ</p>
-        <p className="truncate text-xs text-muted-foreground">Pro Plan</p>
+        <p className="truncate text-[13px] font-semibold leading-tight">Woops HQ</p>
+        <p className="truncate text-[11px] text-muted-foreground leading-tight">Pro Plan</p>
       </div>
     </div>
   );
@@ -124,23 +126,23 @@ function SettingsContent() {
   const PageComponent = PAGE_COMPONENTS[activePage];
 
   return (
-    <div className="flex h-[85vh] max-h-[85vh] w-[800px] max-w-[90vw] flex-col overflow-hidden rounded-2xl bg-background shadow-2xl ring-1 ring-foreground/10">
+    <div className="flex h-[88vh] max-h-[88vh] w-[860px] max-w-[94vw] flex-col overflow-hidden rounded-2xl bg-background shadow-2xl ring-1 ring-foreground/10">
       <div className="flex h-full max-h-full overflow-hidden">
-        <div className="flex w-[280px] shrink-0 flex-col border-r bg-muted/20">
-          <div className="border-b px-4 py-3">
+        <div className="flex w-[252px] shrink-0 flex-col border-r border-border/60 bg-muted/30">
+          <div className="border-b border-border/60 px-4 py-4">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-base font-semibold">Settings</h2>
+              <h2 className="text-[15px] font-semibold">Settings</h2>
               <Button
                 variant="ghost"
                 size="icon"
                 className="size-7 rounded-lg"
                 onClick={closeSettings}
               >
-                <X className="size-4" />
+                <X className="size-[15px]" />
               </Button>
             </div>
             <SearchInput
-              placeholder="Search settings..."
+              placeholder="Search..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="h-8"
@@ -161,9 +163,9 @@ function SettingsContent() {
         </div>
 
         <div className="flex flex-1 flex-col overflow-hidden">
-          <div className="border-b px-6 py-4">
-            <h3 className="text-lg font-semibold">{meta.title}</h3>
-            <p className="text-sm text-muted-foreground">{meta.description}</p>
+          <div className="border-b border-border/60 px-8 py-5">
+            <h3 className="text-[17px] font-semibold leading-tight">{meta.title}</h3>
+            <p className="mt-0.5 text-[13px] text-muted-foreground leading-relaxed">{meta.description}</p>
           </div>
           <div className="flex-1 overflow-y-auto">
             <PageComponent />
@@ -179,7 +181,7 @@ export function SettingsModal() {
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && closeSettings()}>
-      <DialogContent showCloseButton={false} className="p-0">
+      <DialogContent showCloseButton={false} className="p-0 w-[860px] max-w-[94vw]">
         <SettingsContent />
       </DialogContent>
     </Dialog>
