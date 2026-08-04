@@ -1,6 +1,7 @@
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AppHeader } from "@/components/layout/app-header";
 import { AppSidebar } from "@/components/layout/app-sidebar";
+import { SettingsModal } from "@/components/settings/settings-modal";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
 	return (
@@ -10,6 +11,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 				<AppHeader />
 				<div className="flex flex-1 flex-col gap-4">{children}</div>
 			</SidebarInset>
+			<SettingsModal />
 		</SidebarProvider>
 	);
 }
