@@ -6,7 +6,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogPortal,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useSettings } from "@/components/settings/settings-provider";
@@ -117,67 +116,72 @@ function WorkspaceHeader() {
   );
 }
 
-export function SettingsModal() {
-  const { isOpen, activePage, openSettings, closeSettings } = useSettings();
+function SettingsContent() {
+  const { activePage, openSettings, closeSettings } = useSettings();
   const [searchQuery, setSearchQuery] = React.useState("");
 
   const meta = PAGE_META[activePage];
   const PageComponent = PAGE_COMPONENTS[activePage];
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && closeSettings()}>
-      <DialogPortal>
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
-        <div className="fixed inset-[50%_auto_50%_50%] left-1/2 top-1/2 z-50 grid w-full max-w-3xl max-h-[85vh] -translate-x-1/2 -translate-y-1/2 grid-cols-[280px_1fr] overflow-hidden rounded-2xl bg-background shadow-2xl ring-1 ring-foreground/10 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] duration-200 dark:-translate-x-1/2 dark:-translate-y-1/2">
-          <div className="flex h-[85vh] flex-col border-r bg-muted/20">
-            <div className="border-b px-4 py-3">
-              <div className="flex items-center justify-between mb-3">
-                <DialogTitle className="text-base font-semibold">
-                  Settings
-                </DialogTitle>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="size-7 rounded-lg"
-                  onClick={closeSettings}
-                >
-                  <X className="size-4" />
-                </Button>
-              </div>
-              <SearchInput
-                placeholder="Search settings..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="h-8"
-              />
+    <div className="flex h-[85vh] max-h-[85vh] w-[800px] max-w-[90vw] flex-col overflow-hidden rounded-2xl bg-background shadow-2xl ring-1 ring-foreground/10">
+      <div className="flex h-full max-h-full overflow-hidden">
+        <div className="flex w-[280px] shrink-0 flex-col border-r bg-muted/20">
+          <div className="border-b px-4 py-3">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-base font-semibold">Settings</h2>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-7 rounded-lg"
+                onClick={closeSettings}
+              >
+                <X className="size-4" />
+              </Button>
             </div>
-
-            <WorkspaceHeader />
-
-            <SidebarNav
-              activePage={activePage}
-              onSelect={openSettings}
-              searchQuery={searchQuery}
+            <SearchInput
+              placeholder="Search settings..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="h-8"
             />
-
-            <div className="mt-auto">
-              <SidebarFooter />
-            </div>
           </div>
 
-          <div className="flex h-[85vh] flex-col overflow-hidden">
-            <div className="border-b px-6 py-4">
-              <DialogTitle className="text-lg font-semibold">{meta.title}</DialogTitle>
-              <DialogDescription className="text-sm text-muted-foreground">
-                {meta.description}
-              </DialogDescription>
-            </div>
-            <div className="flex-1 overflow-y-auto">
-              <PageComponent />
-            </div>
+          <WorkspaceHeader />
+
+          <SidebarNav
+            activePage={activePage}
+            onSelect={openSettings}
+            searchQuery={searchQuery}
+          />
+
+          <div className="mt-auto">
+            <SidebarFooter />
           </div>
         </div>
-      </DialogPortal>
+
+        <div className="flex flex-1 flex-col overflow-hidden">
+          <div className="border-b px-6 py-4">
+            <h3 className="text-lg font-semibold">{meta.title}</h3>
+            <p className="text-sm text-muted-foreground">{meta.description}</p>
+          </div>
+          <div className="flex-1 overflow-y-auto">
+            <PageComponent />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function SettingsModal() {
+  const { isOpen, closeSettings } = useSettings();
+
+  return (
+    <Dialog open={isOpen} onOpenChange={(open) => !open && closeSettings()}>
+      <DialogContent showCloseButton={false} className="p-0">
+        <SettingsContent />
+      </DialogContent>
     </Dialog>
   );
 }
