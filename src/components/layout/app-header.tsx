@@ -6,11 +6,15 @@ import CustomButton from "@/components/shared/Button";
 import { Separator } from "@/components/ui/separator";
 import { CreditsRadial } from "@/components/layout/credits-radial";
 import { WorkersRadial } from "@/components/layout/workers-radial";
+import { LanguageSwitcher } from "@/components/layout/language-switcher";
 import { BellIcon, ZapIcon } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export function AppHeader() {
+	const { t } = useTranslation("common");
+
 	return (
-		<header className={cn("pxx-4 mb-6 flex items-center justify-between gap-2 md:px-2")}>
+		<header className={cn("px-4 mb-6 flex items-center justify-between gap-2 md:px-2")}>
 			<div className="flex items-center gap-3">
 				{/* Header left area empty or reserved for future content */}
 			</div>
@@ -25,7 +29,7 @@ export function AppHeader() {
 
 				<CustomButton size="sm" showArrow={false} className="hidden sm:inline-flex py-1.5 px-4 text-xs gap-1">
 					<ZapIcon className="w-3 h-3" />
-					Upgrade
+					{t("upgrade")}
 				</CustomButton>
 
 				<Separator
@@ -33,10 +37,13 @@ export function AppHeader() {
 					orientation="vertical"
 				/>
 
-				<Button aria-label="Notifications" size="icon" variant="ghost">
+				<LanguageSwitcher variant="ghost" size="sm" />
+
+				<Button aria-label={t("notifications")} size="icon" variant="ghost">
 					<BellIcon />
 				</Button>
 			</div>
 		</header>
 	);
 }
+

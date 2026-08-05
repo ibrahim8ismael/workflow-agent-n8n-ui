@@ -288,6 +288,111 @@ export interface Run {
 }
 
 // ----------------------------------------------------------------------
+// Billing
+// ----------------------------------------------------------------------
+
+export type SubscriptionStatus =
+  | "ACTIVE"
+  | "CANCELED"
+  | "PAST_DUE"
+  | "TRIALING"
+  | "INCOMPLETE";
+
+export interface SubscriptionPlan {
+  id: string;
+  name: string;
+  description?: string | null;
+  price: number;
+  currency: string;
+  interval: string;
+  features?: Record<string, unknown> | null;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Subscription {
+  id: string;
+  planId: string;
+  status: SubscriptionStatus;
+  currentPeriodStart: string;
+  currentPeriodEnd: string;
+  provider: string;
+  providerSubscriptionId?: string | null;
+  trialEndsAt?: string | null;
+  canceledAt?: string | null;
+  userId?: string | null;
+  organizationId?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string | null;
+  plan?: SubscriptionPlan;
+}
+
+export interface Invoice {
+  id: string;
+  subscriptionId?: string | null;
+  amount: number;
+  currency: string;
+  status: string;
+  providerInvoiceId?: string | null;
+  paidAt?: string | null;
+  dueDate?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string | null;
+}
+
+export interface Wallet {
+  id: string;
+  balanceCredits: string;
+  balanceCreditsUsd: string;
+  lifetimeCredits: string;
+  lifetimeSpendUsd: string;
+  currency: string;
+  softLimit?: string | null;
+  hardLimit?: string | null;
+  gracePeriodEnd?: string | null;
+  isFrozen: boolean;
+  version: number;
+  userId?: string | null;
+  organizationId?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string | null;
+}
+
+export interface WalletTransaction {
+  id: string;
+  walletId: string;
+  type: string;
+  amountCredits: string;
+  amountUsd?: string | null;
+  currency: string;
+  balanceBefore: string;
+  balanceAfter: string;
+  description?: string | null;
+  referenceType?: string | null;
+  referenceId?: string | null;
+  metadata?: Record<string, unknown> | null;
+  couponId?: string | null;
+  expiresAt?: string | null;
+  createdAt: string;
+}
+
+export interface Usage {
+  id: string;
+  subscriptionId?: string | null;
+  aiCreditsUsed: string;
+  aiCreditsLimit: string;
+  operationsUsed: string;
+  operationsLimit: string;
+  resetAt: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ----------------------------------------------------------------------
 // Pagination params (skip/take convention — core endpoints)
 // ----------------------------------------------------------------------
 

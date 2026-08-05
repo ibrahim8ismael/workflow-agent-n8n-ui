@@ -1,0 +1,11 @@
+{
+  "conversations": "Conversations",
+  "newConversation": "New Conversation",
+  "sendMessage": "Send message...",
+  "typeMessage": "Type a message",
+  "clearHistory": "Clear History",
+  "noMessages": "No messages yet. Start a conversation with your AI employee.",
+  "thinking": "Thinking...",
+  "sent": "Sent",
+  "received": "Received"
+}

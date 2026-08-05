@@ -1,0 +1,11 @@
+{
+  "conversations": "المحادثات",
+  "newConversation": "محادثة جديدة",
+  "sendMessage": "إرسال رسالة...",
+  "typeMessage": "اكتب رسالة",
+  "clearHistory": "مسح السجل",
+  "noMessages": "لا توجد رسائل بعد. ابدأ محادثة مع موظفك الذكي.",
+  "thinking": "جاري التفكير...",
+  "sent": "تم الإرسال",
+  "received": "تم الاستلام"
+}

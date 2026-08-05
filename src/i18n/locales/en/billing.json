@@ -1,0 +1,11 @@
+{
+  "billing": "Billing & Subscriptions",
+  "currentPlan": "Current Plan",
+  "usage": "Usage",
+  "invoices": "Invoices",
+  "paymentMethods": "Payment Methods",
+  "upgradePlan": "Upgrade Plan",
+  "manageSubscription": "Manage Subscription",
+  "creditsRemaining": "Credits Remaining",
+  "workersLimit": "AI Employees Limit"
+}

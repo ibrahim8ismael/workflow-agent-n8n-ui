@@ -15,6 +15,7 @@ import {
 import { GeneralPage } from "@/components/settings/pages/general-page";
 import { ProfilePage } from "@/components/settings/pages/profile-page";
 import { BillingPage } from "@/components/settings/pages/billing-page";
+import { SecurityPage } from "@/components/settings/pages/security-page";
 import { useAuthStore } from "@/stores/auth-store";
 
 // ---------------------------------------------------------------------------
@@ -24,7 +25,7 @@ const PAGE_COMPONENTS: Record<SettingsPageId, React.ComponentType> = {
   general: GeneralPage,
   profile: ProfilePage,
   billing: BillingPage,
-  security: GeneralPage,
+  security: SecurityPage,
   notifications: GeneralPage,
   members: GeneralPage,
   integrations: GeneralPage,
@@ -166,9 +167,10 @@ export function SettingsView({ defaultTab }: { defaultTab?: SettingsPageId }) {
 
   React.useEffect(() => {
     if (paramTab && paramTab !== activeTab) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setActiveTab(paramTab);
     }
-  }, [paramTab]);
+  }, [paramTab, activeTab]);
 
   const handleSelectTab = (id: SettingsPageId) => {
     setActiveTab(id);

@@ -1,0 +1,10 @@
+{
+  "knowledgeBase": "Knowledge Base",
+  "documents": "Documents",
+  "uploadDocument": "Upload Document",
+  "addWebsite": "Add Website URL",
+  "addNote": "Add Note",
+  "searchDocs": "Search documents...",
+  "noDocuments": "No knowledge documents added yet.",
+  "fileTypes": "PDF, DOCX, TXT, CSV up to 10MB"
+}

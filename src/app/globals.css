@@ -147,6 +147,9 @@
   html {
     @apply font-sans;
   }
+  html[dir="rtl"] {
+    font-family: 'Cairo', 'Tajawal', system-ui, -apple-system, sans-serif;
+  }
 }
 
 @custom-variant data-open (&:where([data-state="open"], [data-open]:not([data-open="false"])));

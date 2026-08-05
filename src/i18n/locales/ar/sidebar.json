@@ -1,0 +1,23 @@
+{
+  "workspace": "مساحة العمل",
+  "navigation": "التنقل",
+  "overview": "نظرة عامة",
+  "dashboard": "لوحة التحكم",
+  "aiEmployees": "الموظفون الذكاء الاصطناعي",
+  "agents": "الوكلاء",
+  "createEmployee": "إضافة موظف",
+  "knowledgeBase": "قاعدة المعرفة",
+  "knowledge": "المعرفة",
+  "integrations": "التكاملات",
+  "management": "الإدارة",
+  "settings": "الإعدادات",
+  "general": "عام",
+  "profile": "الملف الشخصي",
+  "billing": "الفواتير والاشتراك",
+  "security": "الأمان",
+  "support": "الدعم",
+  "docs": "الوثائق",
+  "logout": "تسجيل الخروج",
+  "credits": "الرصيد",
+  "activeWorkers": "الموظفون النشطون"
+}
