@@ -1,4 +1,4 @@
-// Knowledge endpoints — /api/v1/knowledge (currently public)
+// Knowledge endpoints — /api/v1/knowledge
 
 import { api, buildQuery } from "@/lib/api/client";
 import type {
@@ -26,7 +26,7 @@ export async function ingestKnowledge(input: {
   title: string;
   content: string;
   source?: string;
-  contentType?: string;
+  contentType?: "markdown";
   category?: string;
   organizationId?: string;
   metadata?: Record<string, unknown>;
@@ -34,17 +34,61 @@ export async function ingestKnowledge(input: {
   return api.post<KnowledgeDocument>("/knowledge/ingest", input);
 }
 
-/** GET /knowledge/search — semantic search. limit/offset must be numbers. */
+/** POST /knowledge/upload — upload and ingest a UTF-8 Markdown file. */
+export async function uploadKnowledge(
+  file: File,
+  input: {
+    title?: string;
+    category?: string;
+    organizationId?: string;
+  } = {},
+): Promise<KnowledgeDocument> {
+  const formData = new FormData();
+  formData.append("file", file);
+  if (input.title) formData.append("title", input.title);
+  if (input.category) formData.append("category", input.category);
+  if (input.organizationId) formData.append("organizationId", input.organizationId);
+
+  return api.post<KnowledgeDocument>("/knowledge/upload", formData);
+}
+
+/** GET /knowledge/search — text search returning matching chunks. */
 export async function searchKnowledge(params: {
   query: string;
   organizationId?: string;
   category?: string;
   limit?: number;
   offset?: number;
-}): Promise<KnowledgeDocument[]> {
-  return api.get<KnowledgeDocument[]>(
+}): Promise<KnowledgeChunk[]> {
+  return api.get<KnowledgeChunk[]>(
     `/knowledge/search${buildQuery(params)}`,
   );
+}
+
+/** GET /knowledge/:id */
+export async function getKnowledge(id: string): Promise<KnowledgeDocument> {
+  return api.get<KnowledgeDocument>(`/knowledge/${id}`);
+}
+
+/** PATCH /knowledge/:id */
+export async function updateKnowledge(
+  id: string,
+  input: Partial<{
+    title: string;
+    content: string;
+    source: string;
+    contentType: "markdown";
+    category: string;
+    organizationId: string;
+    metadata: Record<string, unknown>;
+  }>,
+): Promise<KnowledgeDocument> {
+  return api.patch<KnowledgeDocument>(`/knowledge/${id}`, input);
+}
+
+/** DELETE /knowledge/:id — soft deletes the document. */
+export async function deleteKnowledge(id: string): Promise<KnowledgeDocument> {
+  return api.delete<KnowledgeDocument>(`/knowledge/${id}`);
 }
 
 /** GET /knowledge/:id/chunks */
