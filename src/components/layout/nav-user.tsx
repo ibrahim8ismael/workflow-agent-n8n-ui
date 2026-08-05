@@ -28,12 +28,14 @@ import { useAuthStore } from "@/stores/auth-store";
 import { logout } from "@/lib/api/auth";
 import { useRouter } from "next/navigation";
 import { useSettings } from "@/components/settings/settings-provider";
+import { useTranslation } from "react-i18next";
 
 export function NavUser() {
 	const router = useRouter();
 	const user = useAuthStore((s) => s.user);
 	const clearSession = useAuthStore((s) => s.clearSession);
 	const { openSettings } = useSettings();
+	const { t } = useTranslation("sidebar");
 
 	const handleLogout = async () => {
 		try {
@@ -66,11 +68,11 @@ export function NavUser() {
 						{name.charAt(0).toUpperCase()}
 					</AvatarFallback>
 				</Avatar>
-				<div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
+				<div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden rtl:text-right">
 					<span className="truncate font-semibold">{name}</span>
 					<span className="truncate text-xs text-muted-foreground">{email}</span>
 				</div>
-				<ChevronsUpDown className="ml-auto size-4 group-data-[collapsible=icon]:hidden" />
+				<ChevronsUpDown className="ml-auto size-4 group-data-[collapsible=icon]:hidden rtl:ml-0 rtl:mr-auto" />
 			</DropdownMenuTrigger>
 
 			<DropdownMenuContent
@@ -79,7 +81,7 @@ export function NavUser() {
 			>
 				<DropdownMenuGroup>
 					<DropdownMenuLabel className="p-1 font-normal">
-						<div className="flex items-center gap-3 text-left text-sm">
+						<div className="flex items-center gap-3 text-left text-sm rtl:text-right">
 							<Avatar className="size-10 rounded-xl">
 								{user?.avatarUrl && <AvatarImage src={user.avatarUrl} alt={name} />}
 								<AvatarFallback className="rounded-xl bg-accent text-accent-foreground">
@@ -105,29 +107,29 @@ export function NavUser() {
 						onClick={() => openSettings("profile")}
 					>
 						<UserIcon className="text-muted-foreground" />
-						Profile
+						{t("profile")}
 					</DropdownMenuItem>
 					<DropdownMenuItem className="h-9 rounded-lg px-2.5 font-medium">
 						<LifeBuoyIcon className="text-muted-foreground" />
-						Support
+						{t("support")}
 					</DropdownMenuItem>
 					<DropdownMenuItem className="h-9 rounded-lg px-2.5 font-medium">
 						<BookOpenIcon className="text-muted-foreground" />
-						Docs
+						{t("docs")}
 					</DropdownMenuItem>
 					<DropdownMenuItem
 						className="h-9 rounded-lg px-2.5 font-medium"
 						onClick={() => openSettings("billing")}
 					>
 						<CreditCardIcon className="text-muted-foreground" />
-						Billing
+						{t("billing")}
 					</DropdownMenuItem>
 					<DropdownMenuItem
 						className="h-9 rounded-lg px-2.5 font-medium"
 						onClick={() => openSettings("general")}
 					>
 						<SettingsIcon className="text-muted-foreground" />
-						Settings
+						{t("settings")}
 					</DropdownMenuItem>
 				</DropdownMenuGroup>
 
@@ -140,10 +142,11 @@ export function NavUser() {
 						onClick={handleLogout}
 					>
 						<LogOutIcon />
-						Log out
+						{t("logout")}
 					</DropdownMenuItem>
 				</DropdownMenuGroup>
 			</DropdownMenuContent>
 		</DropdownMenu>
 	);
 }
+

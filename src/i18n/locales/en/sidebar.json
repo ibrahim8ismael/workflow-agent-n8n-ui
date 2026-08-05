@@ -1,0 +1,23 @@
+{
+  "workspace": "Workspace",
+  "navigation": "Navigation",
+  "overview": "Overview",
+  "dashboard": "Dashboard",
+  "aiEmployees": "AI Employees",
+  "agents": "Agents",
+  "createEmployee": "Create Employee",
+  "knowledgeBase": "Knowledge Base",
+  "knowledge": "Knowledge",
+  "integrations": "Integrations",
+  "management": "Management",
+  "settings": "Settings",
+  "general": "General",
+  "profile": "Profile",
+  "billing": "Billing",
+  "security": "Security",
+  "support": "Support",
+  "docs": "Docs",
+  "logout": "Log out",
+  "credits": "Credits",
+  "activeWorkers": "Active Workers"
+}

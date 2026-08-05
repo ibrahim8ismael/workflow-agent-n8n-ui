@@ -1,0 +1,10 @@
+{
+  "knowledgeBase": "قاعدة المعرفة",
+  "documents": "المستندات",
+  "uploadDocument": "رفع مستند",
+  "addWebsite": "إضافة رابط موقع",
+  "addNote": "إضافة ملاحظة",
+  "searchDocs": "البحث في المستندات...",
+  "noDocuments": "لم يتم إضافة مستندات معرفية بعد.",
+  "fileTypes": "PDF, DOCX, TXT, CSV بحجم حتى 10 ميجابايت"
+}

@@ -3,6 +3,7 @@ import { Figtree, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/components/providers/auth-provider";
+import { LanguageProvider } from "@/components/providers/language-provider";
 
 const figtree = Figtree({
   variable: "--font-sans",
@@ -95,10 +96,13 @@ export default function RootLayout({
       className={`${figtree.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <TooltipProvider>
-          <AuthProvider>{children}</AuthProvider>
-        </TooltipProvider>
+        <LanguageProvider>
+          <TooltipProvider>
+            <AuthProvider>{children}</AuthProvider>
+          </TooltipProvider>
+        </LanguageProvider>
       </body>
     </html>
   );
 }
+

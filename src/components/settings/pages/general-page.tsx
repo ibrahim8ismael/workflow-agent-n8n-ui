@@ -7,8 +7,14 @@ import {
   SettingsField,
   SettingsDivider,
 } from "@/components/settings/settings-primitives";
+import { useLanguage } from "@/components/providers/language-provider";
+import { SUPPORTED_LANGUAGES, LanguageCode } from "@/i18n/language";
+import { useTranslation } from "react-i18next";
 
 export function GeneralPage() {
+  const { t } = useTranslation(["settings", "common"]);
+  const { language, changeLanguage } = useLanguage();
+
   return (
     // Page root: full height, flex column so sticky footer works
     <div className="flex h-full flex-col">
@@ -20,10 +26,10 @@ export function GeneralPage() {
 
           {/* ── Workspace section ── */}
           <SettingsSection
-            title="Workspace"
+            title={t("workspace")}
             description="Manage your workspace name, logo, and public slug used across the platform."
           >
-            <SettingsField label="Workspace Name" htmlFor="workspace-name">
+            <SettingsField label={t("workspaceName")} htmlFor="workspace-name">
               <Input
                 id="workspace-name"
                 defaultValue="Woops HQ"
@@ -32,12 +38,12 @@ export function GeneralPage() {
             </SettingsField>
 
             <SettingsField
-              label="Workspace Slug"
+              label={t("workspaceSlug")}
               hint="Used in URLs and @mentions. Lowercase letters, numbers, and hyphens only."
               htmlFor="workspace-slug"
             >
               <div className="flex items-center rounded-lg border border-input bg-background ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
-                <span className="select-none border-r border-border/60 px-3 py-2 text-[13px] text-muted-foreground bg-muted/50 rounded-l-lg">
+                <span className="select-none border-r border-border/60 px-3 py-2 text-[13px] text-muted-foreground bg-muted/50 rounded-l-lg rtl:border-r-0 rtl:border-l rtl:rounded-l-none rtl:rounded-r-lg">
                   woops.ai/
                 </span>
                 <input
@@ -51,7 +57,7 @@ export function GeneralPage() {
             <SettingsDivider />
 
             <SettingsField
-              label="Workspace Logo"
+              label={t("workspaceLogo")}
               hint="JPG, PNG or GIF · Maximum 1 MB"
             >
               <div className="flex items-center gap-4 rounded-xl border border-border/60 bg-muted/30 p-4">
@@ -65,7 +71,7 @@ export function GeneralPage() {
                   </p>
                 </div>
                 <Button variant="outline" size="sm" className="shrink-0">
-                  Upload Logo
+                  {t("uploadLogo")}
                 </Button>
               </div>
             </SettingsField>
@@ -73,11 +79,11 @@ export function GeneralPage() {
 
           {/* ── Localization section ── */}
           <SettingsSection
-            title="Localization"
-            description="Configure timezone, language, and region for your workspace."
+            title={t("localization")}
+            description={t("localizationDesc")}
           >
             <SettingsField
-              label="Timezone"
+              label={t("timezone")}
               hint="Used for scheduling, timestamps, and notifications."
               htmlFor="timezone"
             >
@@ -88,25 +94,42 @@ export function GeneralPage() {
               />
             </SettingsField>
 
-            <SettingsField label="Language" htmlFor="language">
-              <Input
-                id="language"
-                defaultValue="English (US)"
-                className="h-9"
-              />
+            <SettingsField label={t("language")} htmlFor="language">
+              <div className="grid grid-cols-2 gap-3">
+                {Object.values(SUPPORTED_LANGUAGES).map((lang) => (
+                  <button
+                    key={lang.code}
+                    type="button"
+                    onClick={() => changeLanguage(lang.code as LanguageCode)}
+                    className={`flex items-center justify-between p-3 rounded-lg border text-start text-xs font-medium transition-all ${
+                      language === lang.code
+                        ? "border-primary bg-primary/5 text-primary ring-1 ring-primary"
+                        : "border-border bg-background hover:bg-muted/50 text-foreground"
+                    }`}
+                  >
+                    <div>
+                      <div className="font-semibold text-sm">{lang.nativeName}</div>
+                      <div className="text-muted-foreground text-[11px]">{lang.name}</div>
+                    </div>
+                    <span className="text-xs uppercase font-mono px-2 py-0.5 rounded bg-muted">
+                      {lang.code}
+                    </span>
+                  </button>
+                ))}
+              </div>
             </SettingsField>
           </SettingsSection>
 
           {/* ── Danger zone ── */}
           <SettingsSection
-            title="Danger Zone"
+            title={t("dangerZone")}
             description="Irreversible actions. Proceed with caution."
           >
             <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="text-[13px] font-medium">Delete Workspace</p>
+                <p className="text-[13px] font-medium">{t("deleteWorkspace")}</p>
                 <p className="text-[12px] text-muted-foreground">
-                  Permanently delete this workspace and all its data.
+                  {t("deleteWorkspaceDesc")}
                 </p>
               </div>
               <Button
@@ -114,7 +137,7 @@ export function GeneralPage() {
                 size="sm"
                 className="shrink-0 border-destructive/40 text-destructive hover:bg-destructive/5 hover:border-destructive"
               >
-                Delete Workspace
+                {t("deleteWorkspace")}
               </Button>
             </div>
           </SettingsSection>
@@ -128,16 +151,17 @@ export function GeneralPage() {
       <div className="shrink-0 border-t border-border/50 bg-background/95 px-10 py-4 backdrop-blur-sm">
         <div className="mx-auto flex max-w-[680px] items-center justify-between">
           <p className="text-[12px] text-muted-foreground">
-            Changes are saved to your workspace.
+            {t("common:changesSaved")}
           </p>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm">
-              Cancel
+              {t("common:cancel")}
             </Button>
-            <Button size="sm">Save Changes</Button>
+            <Button size="sm">{t("common:saveChanges")}</Button>
           </div>
         </div>
       </div>
     </div>
   );
 }
+
