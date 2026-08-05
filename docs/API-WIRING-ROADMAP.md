@@ -78,12 +78,13 @@ The current runtime endpoint executes synchronously and returns a response conta
 
 ## Priority 2: Knowledge Base
 
-The `/knowledge` page is currently mocked with local state and a simulated upload delay.
+The `/knowledge` page now loads live documents and uploads Markdown files through the backend.
 
 ### APIs To Wire
 
 - `GET /knowledge`
 - `POST /knowledge/ingest`
+- `POST /knowledge/upload` (Markdown files only, maximum 5 MB)
 - `GET /knowledge/search`
 - `GET /knowledge/:id`
 - `PATCH /knowledge/:id`
@@ -92,17 +93,17 @@ The `/knowledge` page is currently mocked with local state and a simulated uploa
 
 ### Upload Limitation
 
-The backend ingestion endpoint currently accepts extracted text:
+The backend supports UTF-8 Markdown content and a multipart Markdown upload:
 
 ```json
 {
   "title": "Customer Service SOP",
   "content": "Document text...",
-  "contentType": "text/plain"
+  "contentType": "markdown"
 }
 ```
 
-It does not currently accept multipart file uploads. The UI currently advertises PDF, DOCX, CSV, and XLSX support. To make that support real, either:
+The frontend currently filters the loaded document list locally. Backend search returns matching chunks and still needs a grouped search-results UI. PDF, DOCX, CSV, TXT, and XLSX uploads are not currently supported by the backend. To make that support real, either:
 
 - Extract text in the browser before calling `/knowledge/ingest`.
 - Add a backend file-upload and document-extraction endpoint.
