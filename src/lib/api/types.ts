@@ -231,6 +231,19 @@ export interface Memory {
   deletedAt?: string | null;
 }
 
+export interface CreateMemoryInput {
+  agentId: string;
+  type: MemoryType;
+  key: string;
+  content: string;
+  metadata?: Record<string, unknown>;
+  userId?: string;
+  organizationId?: string;
+  expiresAt?: string;
+}
+
+export type UpdateMemoryInput = Partial<Omit<CreateMemoryInput, "agentId">>;
+
 // ----------------------------------------------------------------------
 // Channels & Integrations
 // ----------------------------------------------------------------------
