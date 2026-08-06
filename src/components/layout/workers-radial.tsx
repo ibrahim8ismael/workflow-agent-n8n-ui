@@ -20,8 +20,10 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 
 export function WorkersRadial() {
+  const { t } = useTranslation("common");
   return (
     <motion.div 
       className="hidden sm:flex items-center gap-2 group cursor-default"
@@ -70,8 +72,8 @@ export function WorkersRadial() {
         </ChartContainer>
       </motion.div>
       <div className="flex flex-col leading-tight">
-        <span className="text-xs font-semibold text-foreground group-hover:text-emerald-500 transition-colors duration-300">{ACTIVE_WORKERS.toLocaleString()} Active</span>
-        <span className="text-[10px] text-muted-foreground">of {TOTAL_WORKERS.toLocaleString()} workers max</span>
+        <span className="text-xs font-semibold text-foreground group-hover:text-emerald-500 transition-colors duration-300">{ACTIVE_WORKERS.toLocaleString()} {t("active", { defaultValue: "Active" })}</span>
+        <span className="text-[10px] text-muted-foreground">{t("ofWorkersMax", { count: TOTAL_WORKERS.toLocaleString(), defaultValue: `of ${TOTAL_WORKERS.toLocaleString()} workers max` })}</span>
       </div>
     </motion.div>
   );

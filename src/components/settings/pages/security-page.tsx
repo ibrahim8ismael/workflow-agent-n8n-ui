@@ -17,6 +17,7 @@ import {
   Trash2Icon,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useTranslation } from "react-i18next";
 
 type Session = Awaited<ReturnType<typeof getMySessions>>[number];
 
@@ -66,6 +67,7 @@ export function SecurityPage() {
   const [error, setError] = React.useState<string | null>(null);
   const [revokingId, setRevokingId] = React.useState<string | null>(null);
   const [loggingOutAll, setLoggingOutAll] = React.useState(false);
+  const { t } = useTranslation(["settings", "common"]);
 
   const load = React.useCallback(async () => {
     setLoading(true);
@@ -128,12 +130,12 @@ export function SecurityPage() {
           )}
 
           <SettingsSection
-            title="Active Sessions"
-            description="Devices currently signed in to your account."
+            title={t("activeSessions", { defaultValue: "Active Sessions" })}
+            description={t("activeSessionsDesc", { defaultValue: "Devices currently signed in to your account." })}
           >
             {sessions.length === 0 && !error ? (
               <p className="text-[13px] text-muted-foreground py-2">
-                No active sessions found.
+                {t("noActiveSessions", { defaultValue: "No active sessions found." })}
               </p>
             ) : (
               <div className="space-y-1">
@@ -147,7 +149,7 @@ export function SecurityPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-[13px] font-medium truncate">
-                        {session.device ?? "Unknown device"}
+                        {session.device ?? t("unknownDevice", { defaultValue: "Unknown device" })}
                       </p>
                       <div className="flex items-center gap-2 mt-0.5">
                         {session.browser && (
@@ -163,7 +165,7 @@ export function SecurityPage() {
                       </div>
                       {session.lastUsedAt && (
                         <p className="text-[11px] text-muted-foreground mt-0.5">
-                          Last used {formatDate(session.lastUsedAt)}
+                          {t("lastUsed", { defaultValue: "Last used" })} {formatDate(session.lastUsedAt)}
                         </p>
                       )}
                     </div>
@@ -187,14 +189,14 @@ export function SecurityPage() {
           </SettingsSection>
 
           <SettingsSection
-            title="Sign Out Devices"
-            description="Immediately sign out of all devices except this one."
+            title={t("signOutDevices", { defaultValue: "Sign Out Devices" })}
+            description={t("signOutDevicesDesc", { defaultValue: "Immediately sign out of all devices except this one." })}
           >
             <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="text-[13px] font-medium">Sign out all other devices</p>
+                <p className="text-[13px] font-medium">{t("signOutAllOtherDevices", { defaultValue: "Sign out all other devices" })}</p>
                 <p className="text-[12px] text-muted-foreground">
-                  This will end all active sessions on other devices.
+                  {t("signOutAllOtherDevicesDesc", { defaultValue: "This will end all active sessions on other devices." })}
                 </p>
               </div>
               <Button
@@ -207,24 +209,24 @@ export function SecurityPage() {
                 {loggingOutAll && (
                   <Loader2Icon className="size-3.5 animate-spin mr-1.5" />
                 )}
-                {loggingOutAll ? "Signing out…" : "Sign out all"}
+                {loggingOutAll ? t("signingOut", { defaultValue: "Signing out…" }) : t("signOutAll", { defaultValue: "Sign out all" })}
               </Button>
             </div>
           </SettingsSection>
 
           <SettingsSection
-            title="Two-Factor Authentication"
-            description="Add an extra layer of security to your account."
+            title={t("twoFactorAuth", { defaultValue: "Two-Factor Authentication" })}
+            description={t("twoFactorAuthDesc", { defaultValue: "Add an extra layer of security to your account." })}
           >
             <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="text-[13px] font-medium">2FA not enabled</p>
+                <p className="text-[13px] font-medium">{t("twoFactorAuthNotEnabled", { defaultValue: "2FA not enabled" })}</p>
                 <p className="text-[12px] text-muted-foreground">
-                  Two-factor authentication adds an extra layer of security.
+                  {t("twoFactorAuthInfo", { defaultValue: "Two-factor authentication adds an extra layer of security." })}
                 </p>
               </div>
               <p className="text-[12px] text-muted-foreground italic shrink-0">
-                Coming soon
+                {t("comingSoon", { defaultValue: "Coming soon" })}
               </p>
             </div>
           </SettingsSection>

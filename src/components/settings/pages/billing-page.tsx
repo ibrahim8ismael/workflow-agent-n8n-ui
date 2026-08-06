@@ -25,11 +25,13 @@ import {
   ExternalLinkIcon,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useTranslation } from "react-i18next";
+import { type TFunction } from "i18next";
 
-const PLAN_FEATURES_DISPLAY = [
-  { icon: ZapIcon, text: "Up to 25 AI Employees" },
-  { icon: UsersIcon, text: "10 team members" },
-  { icon: ShieldCheckIcon, text: "Priority support" },
+const getPlanFeatures = (t: TFunction) => [
+  { icon: ZapIcon, text: t("upTo25AIE", { defaultValue: "Up to 25 AI Employees" }) },
+  { icon: UsersIcon, text: t("teamMembers10", { defaultValue: "10 team members" }) },
+  { icon: ShieldCheckIcon, text: t("prioritySupport", { defaultValue: "Priority support" }) },
 ];
 
 function StatusBadge({
@@ -124,6 +126,7 @@ export function BillingPage() {
   const [loading, setLoading] = React.useState(true);
   const [loadError, setLoadError] = React.useState<string | null>(null);
   const [canceling, setCanceling] = React.useState(false);
+  const { t } = useTranslation(["settings", "common"]);
 
   const load = React.useCallback(async () => {
     setLoading(true);
@@ -204,8 +207,8 @@ export function BillingPage() {
         <div className="mx-auto max-w-[680px] space-y-6 px-10 py-8">
 
           <SettingsSection
-            title="Current Plan"
-            description="Your active subscription and included features."
+            title={t("currentPlan", { defaultValue: "Current Plan" })}
+            description={t("currentPlanDesc", { defaultValue: "Your active subscription and included features." })}
           >
             {subscription && plan ? (
               <div className="rounded-xl border border-border/60 bg-muted/30 p-5">
@@ -214,7 +217,7 @@ export function BillingPage() {
                     <div className="flex items-center gap-2.5">
                       <p className="text-[16px] font-bold">{plan.name}</p>
                       <StatusBadge
-                        label={isCanceled ? "Canceled" : subscription.status === "ACTIVE" ? "Active" : subscription.status}
+                        label={isCanceled ? t("canceledStatus", { defaultValue: "Canceled" }) : subscription.status === "ACTIVE" ? t("activeStatus", { defaultValue: "Active" }) : subscription.status}
                         variant={
                           isCanceled
                             ? "danger"
@@ -226,7 +229,7 @@ export function BillingPage() {
                     </div>
                     <p className="mt-1 text-[13px] text-muted-foreground">
                       {formatCurrency(plan.price, plan.currency)} / {plan.interval} ·{" "}
-                      {isCanceled ? `Canceled · Access until ${nextBillingDate}` : "billed monthly"}
+                      {isCanceled ? `${t("canceledAccessUntil", { defaultValue: "Canceled · Access until" })} ${nextBillingDate}` : t("billedMonthly", { defaultValue: "billed monthly" })}
                     </p>
                   </div>
                   {!isCanceled && (
@@ -237,13 +240,13 @@ export function BillingPage() {
                       className="inline-flex h-7 items-center gap-1 rounded-[min(var(--radius-md),12px)] border border-border bg-background px-2.5 text-[0.8rem] font-medium text-muted-foreground hover:bg-muted hover:text-foreground shrink-0"
                     >
                       <ExternalLinkIcon className="size-3.5 mr-1.5" />
-                      Manage Plan
+                      {t("managePlan", { defaultValue: "Manage Plan" })}
                     </a>
                   )}
                 </div>
 
                 <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-3">
-                  {PLAN_FEATURES_DISPLAY.map(({ icon: Icon, text }) => (
+                  {getPlanFeatures(t).map(({ icon: Icon, text }) => (
                     <div
                       key={text}
                       className="flex items-center gap-2 text-[12px] text-muted-foreground"
@@ -257,7 +260,7 @@ export function BillingPage() {
                 {nextBillingDate && !isCanceled && (
                   <div className="mt-4 border-t border-border/40 pt-4">
                     <p className="text-[12px] text-muted-foreground">
-                      Next billing date:{" "}
+                      {t("nextBillingDate", { defaultValue: "Next billing date:" })}{" "}
                       <span className="font-semibold text-foreground">
                         {nextBillingDate}
                       </span>
@@ -275,7 +278,7 @@ export function BillingPage() {
                       disabled={canceling}
                     >
                       {canceling && <Loader2Icon className="size-3.5 animate-spin mr-1.5" />}
-                      {canceling ? "Canceling…" : "Cancel Subscription"}
+                      {canceling ? t("canceling", { defaultValue: "Canceling…" }) : t("cancelSubscription", { defaultValue: "Cancel Subscription" })}
                     </Button>
                   </div>
                 )}
@@ -283,7 +286,7 @@ export function BillingPage() {
             ) : (
               <div className="rounded-xl border border-dashed border-border/60 bg-muted/20 p-8 text-center">
                 <p className="text-[13px] text-muted-foreground">
-                  No active subscription found.
+                  {t("noActiveSubscription", { defaultValue: "No active subscription found." })}
                 </p>
               </div>
             )}
@@ -291,19 +294,19 @@ export function BillingPage() {
 
           {wallet && (
             <SettingsSection
-              title="Credits & Usage"
-              description="Your current credits balance and usage this billing period."
+              title={t("creditsUsage", { defaultValue: "Credits & Usage" })}
+              description={t("creditsUsageDesc", { defaultValue: "Your current credits balance and usage this billing period." })}
             >
               <div className="rounded-xl border border-border/60 bg-muted/30 p-5 space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-[13px] text-muted-foreground">Balance</span>
+                  <span className="text-[13px] text-muted-foreground">{t("balance", { defaultValue: "Balance" })}</span>
                   <span className="text-[15px] font-semibold">
-                    {formatCredits(wallet.balanceCredits)} credits
+                    {formatCredits(wallet.balanceCredits)} {t("common:credits", { defaultValue: "credits" })}
                   </span>
                 </div>
                 {wallet.balanceCreditsUsd && (
                   <div className="flex items-center justify-between">
-                    <span className="text-[13px] text-muted-foreground">Balance (USD)</span>
+                    <span className="text-[13px] text-muted-foreground">{t("balanceUsd", { defaultValue: "Balance (USD)" })}</span>
                     <span className="text-[13px]">
                       {formatCurrency(Number(wallet.balanceCreditsUsd) * 100, wallet.currency)}
                     </span>
@@ -313,7 +316,7 @@ export function BillingPage() {
                   <>
                     <div className="border-t border-border/40 pt-3 space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="text-[12px] text-muted-foreground">AI Credits Used</span>
+                        <span className="text-[12px] text-muted-foreground">{t("aiCreditsUsed", { defaultValue: "AI Credits Used" })}</span>
                         <span className="text-[12px] font-medium">
                           {formatCredits(usage.aiCreditsUsed)} / {formatCredits(usage.aiCreditsLimit)}
                         </span>
@@ -334,17 +337,17 @@ export function BillingPage() {
           )}
 
           <SettingsSection
-            title="Payment Method"
-            description="The default card charged on your next billing date."
+            title={t("paymentMethod", { defaultValue: "Payment Method" })}
+            description={t("paymentMethodDesc", { defaultValue: "The default card charged on your next billing date." })}
           >
             <div className="flex items-center gap-4 rounded-xl border border-border/60 bg-muted/30 p-4">
               <div className="flex h-9 w-14 shrink-0 items-center justify-center rounded-md border border-border/60 bg-background text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                 <CreditCardIcon className="size-4" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-[13px] font-medium">Payment method</p>
+                <p className="text-[13px] font-medium">{t("paymentMethod", { defaultValue: "Payment method" })}</p>
                 <p className="text-[12px] text-muted-foreground">
-                  Managed via Stripe
+                  {t("managedViaStripe", { defaultValue: "Managed via Stripe" })}
                 </p>
               </div>
               <a
@@ -353,26 +356,26 @@ export function BillingPage() {
                 rel="noopener noreferrer"
                 className="inline-flex h-7 items-center gap-1 rounded-[min(var(--radius-md),12px)] border border-border bg-background px-2.5 text-[0.8rem] font-medium text-muted-foreground hover:bg-muted hover:text-foreground shrink-0"
               >
-                Edit
+                {t("common:edit", { defaultValue: "Edit" })}
               </a>
             </div>
           </SettingsSection>
 
           <SettingsSection
-            title="Billing History"
-            description="Your past invoices."
+            title={t("billingHistory", { defaultValue: "Billing History" })}
+            description={t("billingHistoryDesc", { defaultValue: "Your past invoices." })}
           >
             {invoices.length > 0 ? (
               <div className="overflow-hidden rounded-xl border border-border/60">
                 <div className="grid grid-cols-[1fr_auto_auto_auto] gap-4 border-b border-border/50 bg-muted/40 px-5 py-2.5">
                   <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                    Period
+                    {t("period", { defaultValue: "Period" })}
                   </span>
                   <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                    Amount
+                    {t("amount", { defaultValue: "Amount" })}
                   </span>
                   <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                    Status
+                    {t("common:status", { defaultValue: "Status" })}
                   </span>
                   <span className="w-6" />
                 </div>
@@ -393,7 +396,7 @@ export function BillingPage() {
                       {formatCurrency(invoice.amount, invoice.currency)}
                     </p>
                     <StatusBadge
-                      label={invoice.status === "PAID" ? "Paid" : invoice.status}
+                      label={invoice.status === "PAID" ? t("paidStatus", { defaultValue: "Paid" }) : invoice.status}
                       variant={invoice.status === "PAID" ? "success" : "default"}
                     />
                     <span className="w-6" />
@@ -401,7 +404,7 @@ export function BillingPage() {
                 ))}
               </div>
             ) : (
-              <p className="text-[13px] text-muted-foreground">No invoices yet.</p>
+              <p className="text-[13px] text-muted-foreground">{t("noInvoices", { defaultValue: "No invoices yet." })}</p>
             )}
           </SettingsSection>
 
@@ -412,13 +415,13 @@ export function BillingPage() {
       <div className="shrink-0 border-t border-border/50 bg-background/95 px-10 py-4 backdrop-blur-sm">
         <div className="mx-auto flex max-w-[680px] items-center justify-between">
           <p className="text-[12px] text-muted-foreground">
-            Payments are processed securely via Stripe.
+            {t("paymentsSecureStripe", { defaultValue: "Payments are processed securely via Stripe." })}
           </p>
           <a
             href="mailto:billing@woops.ai"
             className="inline-flex h-7 items-center gap-1 rounded-[min(var(--radius-md),12px)] border border-border bg-background px-2.5 text-[0.8rem] font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
           >
-            Contact Billing Support
+            {t("contactBillingSupport", { defaultValue: "Contact Billing Support" })}
           </a>
         </div>
       </div>

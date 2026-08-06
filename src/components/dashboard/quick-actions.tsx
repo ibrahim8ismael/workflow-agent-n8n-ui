@@ -1,3 +1,5 @@
+"use client";
+
 import {
 	Card,
 	CardContent,
@@ -16,46 +18,49 @@ import {
 } from "@/components/ui/item";
 import { TruckIcon, SettingsIcon, DownloadIcon, ChevronRightIcon, MessageSquarePlusIcon } from "lucide-react";
 import Button from "@/components/shared/Button";
-
-const actions = [
-	{
-		title: "Review unfulfilled",
-		description: "Orders waiting to ship.",
-		href: "#",
-		icon: (
-			<TruckIcon aria-hidden="true" />
-		),
-	},
-	{
-		title: "Store settings",
-		description: "Payments, checkouts etc.",
-		href: "#",
-		icon: (
-			<SettingsIcon aria-hidden="true" />
-		),
-	},
-	{
-		title: "Export sales",
-		description: "CSV for accountings.",
-		href: "#",
-		icon: (
-			<DownloadIcon aria-hidden="true" />
-		),
-	},
-] as const;
+import { useTranslation } from "react-i18next";
 
 export function QuickActions() {
+	const { t } = useTranslation("dashboard");
+
+	const actions = [
+		{
+			title: t("reviewUnfulfilled", { defaultValue: "Review unfulfilled" }),
+			description: t("ordersWaitingToShip", { defaultValue: "Orders waiting to ship." }),
+			href: "#",
+			icon: (
+				<TruckIcon aria-hidden="true" />
+			),
+		},
+		{
+			title: t("storeSettings", { defaultValue: "Store settings" }),
+			description: t("paymentsCheckouts", { defaultValue: "Payments, checkouts etc." }),
+			href: "#",
+			icon: (
+				<SettingsIcon aria-hidden="true" />
+			),
+		},
+		{
+			title: t("exportSales", { defaultValue: "Export sales" }),
+			description: t("csvForAccountings", { defaultValue: "CSV for accountings." }),
+			href: "#",
+			icon: (
+				<DownloadIcon aria-hidden="true" />
+			),
+		},
+	] as const;
+
 	return (
 		<Card className="flex flex-col">
 			<CardHeader>
-				<CardTitle>Quick actions</CardTitle>
-				<CardDescription>Shortcuts to same destinations.</CardDescription>
+				<CardTitle>{t("quickActions", { defaultValue: "Quick actions" })}</CardTitle>
+				<CardDescription>{t("quickActionsDesc", { defaultValue: "Shortcuts to same destinations." })}</CardDescription>
 			</CardHeader>
 			<CardContent className="flex-1 flex flex-col gap-4">
 				<Button className="w-full justify-between" size="md" href="/new">
 					<span className="flex items-center gap-2">
 						<MessageSquarePlusIcon className="w-4 h-4" />
-						New chat
+						{t("newChat", { defaultValue: "New chat" })}
 					</span>
 				</Button>
 				<ItemGroup className="gap-0">

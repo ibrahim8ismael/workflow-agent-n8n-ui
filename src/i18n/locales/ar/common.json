@@ -32,5 +32,8 @@
   "arabic": "العربية",
   "notifications": "الإشعارات",
   "noResults": "لم يتم العثور على نتائج",
-  "changesSaved": "يتم حفظ التغييرات في مساحة العمل الخاصة بك."
+  "changesSaved": "يتم حفظ التغييرات في مساحة العمل الخاصة بك.",
+  "ofWorkersMax": "من أصل {{count}} موظف كحد أقصى",
+  "credits": "رصيد",
+  "ofCreditsRemaining": "من أصل {{count}} متبقي"
 }

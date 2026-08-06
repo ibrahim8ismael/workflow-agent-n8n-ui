@@ -44,7 +44,7 @@ export default function NewChatPage() {
 	});
 
 	return (
-		<div className="flex flex-col h-[calc(100vh-theme(spacing.14))] md:h-[calc(100vh-theme(spacing.16))] w-full overflow-hidden bg-background">
+		<div dir="ltr" className="flex flex-col h-[calc(100vh-theme(spacing.14))] md:h-[calc(100vh-theme(spacing.16))] w-full overflow-hidden bg-background">
 			<ChatContext.Provider value={{ activeMode, setActiveMode, effortLevel, setEffortLevel }}>
 				<AssistantRuntimeProvider runtime={runtime}>
 					<Thread />

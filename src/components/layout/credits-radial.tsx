@@ -21,8 +21,10 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 
 export function CreditsRadial() {
+  const { t } = useTranslation("common");
   return (
     <motion.div 
       className="hidden sm:flex items-center gap-2 group cursor-default"
@@ -71,8 +73,8 @@ export function CreditsRadial() {
         </ChartContainer>
       </motion.div>
       <div className="flex flex-col leading-tight">
-        <span className="text-xs font-semibold text-foreground group-hover:text-blue-500 transition-colors duration-300">{remaining.toLocaleString()} credits</span>
-        <span className="text-[10px] text-muted-foreground">of {TOTAL_CREDITS.toLocaleString()} remaining</span>
+        <span className="text-xs font-semibold text-foreground group-hover:text-blue-500 transition-colors duration-300">{remaining.toLocaleString()} {t("credits", { defaultValue: "credits" })}</span>
+        <span className="text-[10px] text-muted-foreground">{t("ofCreditsRemaining", { count: TOTAL_CREDITS.toLocaleString(), defaultValue: `of ${TOTAL_CREDITS.toLocaleString()} remaining` })}</span>
       </div>
     </motion.div>
   );

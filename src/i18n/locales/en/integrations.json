@@ -1,0 +1,11 @@
+{
+  "integrationsDirectory": "Integrations Directory",
+  "integrationsDesc": "Connect the tools your AI employees need to do their jobs.",
+  "searchIntegrations": "Search integrations...",
+  "by": "by",
+  "installs": "installs",
+  "install": "Install",
+  "details": "Details",
+  "customIntegration": "Custom Integration",
+  "customIntegrationDesc": "Build a custom API connection for your internal tools."
+}

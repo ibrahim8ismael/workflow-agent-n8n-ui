@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { SearchIcon, PlugIcon, CheckCircle2Icon, AppWindowIcon } from "lucide-react";
 import CustomButton from "@/components/shared/Button";
 import { ArrowUpRightIcon } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const MOCK_APPS = [
 	{
@@ -100,22 +101,24 @@ const MOCK_APPS = [
 ];
 
 export default function IntegrationsPage() {
+	const { t } = useTranslation("integrations");
+
 	return (
 		<div className="flex flex-col gap-6">
 			{/* Page Header */}
 			<div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
 				<div>
-					<h1 className="text-3xl font-bold tracking-tight">Integrations Directory</h1>
-					<p className="text-muted-foreground mt-1">Connect the tools your AI employees need to do their jobs.</p>
+					<h1 className="text-3xl font-bold tracking-tight">{t("integrationsDirectory", { defaultValue: "Integrations Directory" })}</h1>
+					<p className="text-muted-foreground mt-1">{t("integrationsDesc", { defaultValue: "Connect the tools your AI employees need to do their jobs." })}</p>
 				</div>
 				<div className="relative w-full md:w-[300px]">
 					<SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-					<Input placeholder="Search integrations..." className="pl-9 h-10 rounded-xl bg-background" />
+					<Input placeholder={t("searchIntegrations", { defaultValue: "Search integrations..." })} className="pl-9 h-10 rounded-xl bg-background text-left" />
 				</div>
 			</div>
 
 			{/* Integrations Grid */}
-			<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+			<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" dir="ltr">
 				{MOCK_APPS.map((app) => (
 					<Card key={app.id} className="group relative overflow-hidden border-border/50 bg-card/40 hover:bg-card hover:shadow-md transition-all duration-300 flex flex-col">
 						{/* Type badge */}
@@ -159,10 +162,10 @@ export default function IntegrationsPage() {
 						{/* Hover overlay - slides up from bottom */}
 						<div className="absolute inset-x-0 bottom-0 bg-card/95 backdrop-blur-sm border-t border-border/40 p-3 flex gap-2 translate-y-full group-hover:translate-y-0 transition-transform duration-200 ease-out">
 							<CustomButton size="sm" showArrow={false} className="flex-1 h-9 rounded-2xl text-xs">
-								Install
+								{t("install", { defaultValue: "Install" })}
 							</CustomButton>
 							<Button variant="outline" className="flex-1 h-9 rounded-2xl text-xs font-semibold border-border/60">
-								Details <ArrowUpRightIcon className="w-3 h-3 ml-1" />
+								{t("details", { defaultValue: "Details" })} <ArrowUpRightIcon className="w-3 h-3 ml-1" />
 							</Button>
 						</div>
 					</Card>
@@ -173,8 +176,8 @@ export default function IntegrationsPage() {
 					<div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
 						<PlugIcon className="w-5 h-5 text-muted-foreground" />
 					</div>
-					<h3 className="mt-3 text-sm font-semibold text-foreground">Custom Integration</h3>
-					<p className="text-xs text-muted-foreground mt-1 text-center px-6">Build a custom API connection for your internal tools.</p>
+					<h3 className="mt-3 text-sm font-semibold text-foreground">{t("customIntegration", { defaultValue: "Custom Integration" })}</h3>
+					<p className="text-xs text-muted-foreground mt-1 text-center px-6">{t("customIntegrationDesc", { defaultValue: "Build a custom API connection for your internal tools." })}</p>
 				</Card>
 			</div>
 		</div>
