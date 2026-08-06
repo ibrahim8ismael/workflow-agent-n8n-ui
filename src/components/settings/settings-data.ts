@@ -10,6 +10,7 @@ import {
   DatabaseIcon,
   MessageCircleIcon,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export type SettingsPageId =
   | "general"
@@ -35,74 +36,80 @@ export interface SettingsNavGroup {
   items: SettingsNavItem[];
 }
 
-export const SETTINGS_NAV: SettingsNavGroup[] = [
-  {
-    id: "workspace",
-    label: "Workspace",
-    items: [
-      { id: "general", label: "General", icon: BuildingIcon },
-      { id: "members", label: "Members", icon: UsersIcon, badge: "3" },
-      { id: "integrations", label: "Integrations", icon: PlugIcon },
-      { id: "knowledge", label: "Knowledge", icon: DatabaseIcon },
-      { id: "channels", label: "Channels", icon: MessageCircleIcon },
-    ],
-  },
-  {
-    id: "account",
-    label: "Account",
-    items: [
-      { id: "profile", label: "Profile", icon: UserIcon },
-      { id: "security", label: "Security", icon: ShieldCheckIcon },
-      { id: "notifications", label: "Notifications", icon: BellIcon },
-    ],
-  },
-  {
-    id: "billing",
-    label: "Billing",
-    items: [
-      { id: "billing", label: "Billing", icon: CreditCardIcon },
-    ],
-  },
-];
+export function useSettingsData() {
+  const { t } = useTranslation(["settings"]);
 
-export const PAGE_META: Record<
-  SettingsPageId,
-  { title: string; description: string }
-> = {
-  general: {
-    title: "General",
-    description: "Manage your workspace name, logo, and timezone.",
-  },
-  profile: {
-    title: "Profile",
-    description: "Update your personal information and preferences.",
-  },
-  billing: {
-    title: "Billing",
-    description: "Manage your subscription, payment methods, and invoices.",
-  },
-  security: {
-    title: "Security",
-    description: "Manage your password, two-factor authentication, and active sessions.",
-  },
-  notifications: {
-    title: "Notifications",
-    description: "Configure how and when you receive notifications.",
-  },
-  members: {
-    title: "Members",
-    description: "Manage team members and their roles.",
-  },
-  integrations: {
-    title: "Integrations",
-    description: "Connect third-party apps and services.",
-  },
-  knowledge: {
-    title: "Knowledge",
-    description: "Manage documents, FAQs, and knowledge bases.",
-  },
-  channels: {
-    title: "Channels",
-    description: "Configure communication channels for your employees.",
-  },
-};
+  const SETTINGS_NAV: SettingsNavGroup[] = [
+    {
+      id: "workspace",
+      label: t("workspace", { defaultValue: "Workspace" }),
+      items: [
+        { id: "general", label: t("general", { defaultValue: "General" }), icon: BuildingIcon },
+        { id: "members", label: t("members", { defaultValue: "Members" }), icon: UsersIcon, badge: "3" },
+        { id: "integrations", label: t("integrations", { defaultValue: "Integrations" }), icon: PlugIcon },
+        { id: "knowledge", label: t("knowledge", { defaultValue: "Knowledge" }), icon: DatabaseIcon },
+        { id: "channels", label: t("channels", { defaultValue: "Channels" }), icon: MessageCircleIcon },
+      ],
+    },
+    {
+      id: "account",
+      label: t("account", { defaultValue: "Account" }),
+      items: [
+        { id: "profile", label: t("profile", { defaultValue: "Profile" }), icon: UserIcon },
+        { id: "security", label: t("security", { defaultValue: "Security" }), icon: ShieldCheckIcon },
+        { id: "notifications", label: t("notifications", { defaultValue: "Notifications" }), icon: BellIcon },
+      ],
+    },
+    {
+      id: "billing",
+      label: t("billing", { defaultValue: "Billing" }),
+      items: [
+        { id: "billing", label: t("billing", { defaultValue: "Billing" }), icon: CreditCardIcon },
+      ],
+    },
+  ];
+
+  const PAGE_META: Record<
+    SettingsPageId,
+    { title: string; description: string }
+  > = {
+    general: {
+      title: t("general", { defaultValue: "General" }),
+      description: t("workspaceDesc", { defaultValue: "Manage your workspace name, logo, and timezone." }),
+    },
+    profile: {
+      title: t("profile", { defaultValue: "Profile" }),
+      description: t("personalInfoDesc", { defaultValue: "Update your personal information and preferences." }),
+    },
+    billing: {
+      title: t("billing", { defaultValue: "Billing" }),
+      description: t("billingDesc", { defaultValue: "Manage your subscription, payment methods, and invoices." }),
+    },
+    security: {
+      title: t("security", { defaultValue: "Security" }),
+      description: t("securityDesc", { defaultValue: "Manage your password, two-factor authentication, and active sessions." }),
+    },
+    notifications: {
+      title: t("notifications", { defaultValue: "Notifications" }),
+      description: t("notificationsDesc", { defaultValue: "Configure how and when you receive notifications." }),
+    },
+    members: {
+      title: t("members", { defaultValue: "Members" }),
+      description: t("membersDesc", { defaultValue: "Manage team members and their roles." }),
+    },
+    integrations: {
+      title: t("integrations", { defaultValue: "Integrations" }),
+      description: t("integrationsDesc", { defaultValue: "Connect third-party apps and services." }),
+    },
+    knowledge: {
+      title: t("knowledge", { defaultValue: "Knowledge" }),
+      description: t("knowledgeDesc", { defaultValue: "Manage documents, FAQs, and knowledge bases." }),
+    },
+    channels: {
+      title: t("channels", { defaultValue: "Channels" }),
+      description: t("channelsDesc", { defaultValue: "Configure communication channels for your employees." }),
+    },
+  };
+
+  return { SETTINGS_NAV, PAGE_META };
+}

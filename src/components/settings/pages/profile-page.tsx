@@ -13,8 +13,10 @@ import { useAuthStore } from "@/stores/auth-store";
 import { updateMe } from "@/lib/api/users";
 import { ApiError } from "@/lib/api/client";
 import { CameraIcon, Loader2Icon } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export function ProfilePage() {
+  const { t } = useTranslation(["settings", "common"]);
   const user = useAuthStore((s) => s.user);
   const setUser = useAuthStore((s) => s.setUser);
 
@@ -73,8 +75,8 @@ export function ProfilePage() {
         <div className="mx-auto max-w-[680px] space-y-6 px-10 py-8">
 
           <SettingsSection
-            title="Personal Information"
-            description="Your public profile details visible to teammates in your workspace."
+            title={t("personalInformation", { defaultValue: "Personal Information" })}
+            description={t("personalInfoDesc", { defaultValue: "Your public profile details visible to teammates in your workspace." })}
           >
             <div className="flex items-center gap-5">
               <div className="relative shrink-0">
@@ -88,19 +90,19 @@ export function ProfilePage() {
                 </Avatar>
                 <button
                   className="absolute -bottom-1 -right-1 flex size-6 items-center justify-center rounded-full border border-border bg-background shadow-sm text-muted-foreground cursor-not-allowed"
-                  title="Avatar upload coming soon"
+                  title={t("avatarComingSoon", { defaultValue: "Avatar upload coming soon" })}
                   disabled
                 >
                   <CameraIcon className="size-3" />
                 </button>
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-[13px] font-medium">Profile Photo</p>
+                <p className="text-[13px] font-medium">{t("profilePhoto", { defaultValue: "Profile Photo" })}</p>
                 <p className="mt-0.5 text-[12px] text-muted-foreground">
-                  JPG, PNG or GIF · Maximum 1 MB
+                  {t("profilePhotoHint", { defaultValue: "JPG, PNG or GIF · Maximum 1 MB" })}
                 </p>
                 <p className="mt-2 text-[11px] text-muted-foreground italic">
-                  Avatar upload coming soon
+                  {t("avatarComingSoon", { defaultValue: "Avatar upload coming soon" })}
                 </p>
               </div>
             </div>
@@ -108,7 +110,7 @@ export function ProfilePage() {
             <SettingsDivider />
 
             <div className="grid grid-cols-2 gap-4">
-              <SettingsField label="First Name" htmlFor="first-name">
+              <SettingsField label={t("firstName", { defaultValue: "First Name" })} htmlFor="first-name">
                 <Input
                   id="first-name"
                   value={firstName}
@@ -116,7 +118,7 @@ export function ProfilePage() {
                   className="h-9"
                 />
               </SettingsField>
-              <SettingsField label="Last Name" htmlFor="last-name">
+              <SettingsField label={t("lastName", { defaultValue: "Last Name" })} htmlFor="last-name">
                 <Input
                   id="last-name"
                   value={lastName}
@@ -126,7 +128,7 @@ export function ProfilePage() {
               </SettingsField>
             </div>
 
-            <SettingsField label="Email Address" htmlFor="email">
+            <SettingsField label={t("emailAddress", { defaultValue: "Email Address" })} htmlFor="email">
               <Input
                 id="email"
                 type="email"
@@ -138,10 +140,10 @@ export function ProfilePage() {
           </SettingsSection>
 
           <SettingsSection
-            title="Preferences"
-            description="Customize your personal experience inside Woops."
+            title={t("preferences", { defaultValue: "Preferences" })}
+            description={t("preferencesDesc", { defaultValue: "Customize your personal experience inside Woops." })}
           >
-            <SettingsField label="Display Language" htmlFor="language">
+            <SettingsField label={t("displayLanguage", { defaultValue: "Display Language" })} htmlFor="language">
               <Input
                 id="language"
                 defaultValue="English (US)"
@@ -151,8 +153,8 @@ export function ProfilePage() {
             </SettingsField>
 
             <SettingsField
-              label="Theme"
-              hint="Controls the visual appearance of the interface."
+              label={t("theme", { defaultValue: "Theme" })}
+              hint={t("themeHint", { defaultValue: "Controls the visual appearance of the interface." })}
               htmlFor="theme"
             >
               <Input
@@ -172,11 +174,11 @@ export function ProfilePage() {
         <div className="mx-auto flex max-w-[680px] items-center justify-between">
           <div className="flex items-center gap-3">
             <p className="text-[12px] text-muted-foreground">
-              Changes apply to your personal account only.
+              {t("changesApplyPersonal", { defaultValue: "Changes apply to your personal account only." })}
             </p>
             {success && (
               <span className="text-[12px] text-emerald-600 font-medium">
-                Saved!
+                {t("saved", { defaultValue: "Saved!" })}
               </span>
             )}
             {error && (
@@ -192,7 +194,7 @@ export function ProfilePage() {
               onClick={handleCancel}
               disabled={!isDirty || saving}
             >
-              Cancel
+              {t("common:cancel", { defaultValue: "Cancel" })}
             </Button>
             <Button
               size="sm"
@@ -200,7 +202,7 @@ export function ProfilePage() {
               disabled={!isDirty || saving}
             >
               {saving && <Loader2Icon className="size-3.5 animate-spin mr-1.5" />}
-              {saving ? "Saving…" : "Save Changes"}
+              {saving ? t("saving", { defaultValue: "Saving…" }) : t("common:saveChanges", { defaultValue: "Save Changes" })}
             </Button>
           </div>
         </div>

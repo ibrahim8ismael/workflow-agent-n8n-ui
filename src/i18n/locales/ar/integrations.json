@@ -1,0 +1,11 @@
+{
+  "integrationsDirectory": "دليل التكاملات",
+  "integrationsDesc": "قم بربط الأدوات التي يحتاجها موظفو الذكاء الاصطناعي للقيام بعملهم.",
+  "searchIntegrations": "البحث في التكاملات...",
+  "by": "بواسطة",
+  "installs": "تثبيت",
+  "install": "تثبيت",
+  "details": "التفاصيل",
+  "customIntegration": "تكامل مخصص",
+  "customIntegrationDesc": "قم ببناء اتصال API مخصص لأدواتك الداخلية."
+}

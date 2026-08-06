@@ -27,6 +27,7 @@ import {
 import { Delta, DeltaIcon, DeltaValue } from "@/components/shared/delta";
 import { revenueChartDemo } from "@/components/dashboard/revenue-chart-data";
 import { ArrowRightIcon } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 /** Matches `<Select>`; chart uses the last N days of `revenueChartDemo`. */
 type PeriodDays = 7 | 14 | 30 | 60 | 90;
@@ -56,6 +57,7 @@ export function RevenueChart() {
 	const chartUid = useId().replace(/:/g, "");
 	const idAreaGradient = `revenue-area-grad-${chartUid}`;
 	const [periodDays, setPeriodDays] = useState<PeriodDays>(60);
+	const { t } = useTranslation("dashboard");
 
 	const chartRows = useMemo(
 		() => revenueChartDemo.slice(-periodDays),
@@ -83,7 +85,7 @@ export function RevenueChart() {
 	return (
 		<Card className="md:col-span-2 lg:col-span-4">
 			<CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-				<CardTitle className="text-balance">Revenue</CardTitle>
+				<CardTitle className="text-balance">{t("revenueTitle", { defaultValue: "Revenue" })}</CardTitle>
 				<Select
 					onValueChange={(v) => {
 						setPeriodDays(Number(v) as PeriodDays);
@@ -98,11 +100,11 @@ export function RevenueChart() {
 						<SelectValue placeholder="Range" />
 					</SelectTrigger>
 					<SelectContent align="end">
-						<SelectItem value="7">Last 7 days</SelectItem>
-						<SelectItem value="14">Last 14 days</SelectItem>
-						<SelectItem value="30">Last 30 days</SelectItem>
-						<SelectItem value="60">Last 60 days</SelectItem>
-						<SelectItem value="90">Last 90 days</SelectItem>
+						<SelectItem value="7">{t("last7Days", { defaultValue: "Last 7 days" })}</SelectItem>
+						<SelectItem value="14">{t("last14Days", { defaultValue: "Last 14 days" })}</SelectItem>
+						<SelectItem value="30">{t("last30Days", { defaultValue: "Last 30 days" })}</SelectItem>
+						<SelectItem value="60">{t("last60Days", { defaultValue: "Last 60 days" })}</SelectItem>
+						<SelectItem value="90">{t("last90Days", { defaultValue: "Last 90 days" })}</SelectItem>
 					</SelectContent>
 				</Select>
 			</CardHeader>
@@ -176,10 +178,10 @@ export function RevenueChart() {
 						<DeltaValue />
 					</Delta>
 					<p className="inline-flex text-pretty">
-						vs first day in last {periodDays} days.
+						{t("vsFirstDayInLast", { defaultValue: `vs first day in last ${periodDays} days.`, periodDays })}
 					</p>
 				</div>
-				<Button className="text-muted-foreground" size="xs" variant="ghost" render={<a href="#/reports" />} nativeButton={false}>View report
+				<Button className="text-muted-foreground" size="xs" variant="ghost" render={<a href="#/reports" />} nativeButton={false}>{t("viewReport", { defaultValue: "View report" })}
                 						<ArrowRightIcon aria-hidden="true" data-icon="inline-end" /></Button>
 			</CardFooter>
 		</Card>

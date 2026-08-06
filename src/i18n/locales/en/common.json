@@ -32,5 +32,8 @@
   "arabic": "Arabic",
   "notifications": "Notifications",
   "noResults": "No results found",
-  "changesSaved": "Changes are saved to your workspace."
+  "changesSaved": "Changes are saved to your workspace.",
+  "ofWorkersMax": "of {{count}} workers max",
+  "credits": "credits",
+  "ofCreditsRemaining": "of {{count}} remaining"
 }

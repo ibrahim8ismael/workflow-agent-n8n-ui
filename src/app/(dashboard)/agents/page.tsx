@@ -1,5 +1,6 @@
 "use client";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -55,19 +56,19 @@ const STATUS_META: Record<
 	{ label: string; className: string }
 > = {
 	PUBLISHED: {
-		label: "Active",
+		label: "statusActive",
 		className: "bg-emerald-500/10 text-emerald-600 border-transparent",
 	},
 	DRAFT: {
-		label: "Draft",
+		label: "statusDraft",
 		className: "bg-muted text-muted-foreground border-transparent",
 	},
 	ARCHIVED: {
-		label: "Archived",
+		label: "statusArchived",
 		className: "bg-amber-500/10 text-amber-600 border-transparent",
 	},
 	ERROR: {
-		label: "Error",
+		label: "statusError",
 		className: "bg-destructive/10 text-destructive border-transparent",
 	},
 };
@@ -99,6 +100,7 @@ function initials(name: string): string {
 }
 
 export default function AgentsPage() {
+	const { t } = useTranslation("agents");
 	const [agents, setAgents] = useState<Agent[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
@@ -120,7 +122,7 @@ export default function AgentsPage() {
 			if (err instanceof ApiError) {
 				setError(err.message);
 			} else {
-				setError("Could not load your workforce. Please try again.");
+				setError(t("loadError", { defaultValue: "Could not load your workforce. Please try again." }));
 			}
 		} finally {
 			setLoading(false);
@@ -137,7 +139,7 @@ export default function AgentsPage() {
 				if (err instanceof ApiError) {
 					setError(err.message);
 				} else {
-					setError("Could not load your workforce. Please try again.");
+					setError(t("loadError", { defaultValue: "Could not load your workforce. Please try again." }));
 				}
 			} finally {
 				setLoading(false);
@@ -172,7 +174,7 @@ export default function AgentsPage() {
 			if (err instanceof ApiError) {
 				setCreateError(err.message);
 			} else {
-				setCreateError("Could not create the employee. Please try again.");
+				setCreateError(t("createError", { defaultValue: "Could not create the employee. Please try again." }));
 			}
 		} finally {
 			setCreating(false);
@@ -192,7 +194,7 @@ export default function AgentsPage() {
 			if (err instanceof ApiError) {
 				setError(err.message);
 			} else {
-				setError("Could not update the employee. Please try again.");
+				setError(t("updateError", { defaultValue: "Could not update the employee. Please try again." }));
 			}
 		} finally {
 			setBusyId(null);
@@ -209,7 +211,7 @@ export default function AgentsPage() {
 			if (err instanceof ApiError) {
 				setError(err.message);
 			} else {
-				setError("Could not delete the employee. Please try again.");
+				setError(t("deleteErrorMsg", { defaultValue: "Could not delete the employee. Please try again." }));
 			}
 		} finally {
 			setBusyId(null);
@@ -221,25 +223,25 @@ export default function AgentsPage() {
 			{/* Page Header */}
 			<div className="flex items-center justify-between">
 				<div>
-					<h1 className="text-3xl font-bold tracking-tight">Your Workforce</h1>
-					<p className="text-muted-foreground mt-1">Manage and assign tasks to your AI employees.</p>
+					<h1 className="text-3xl font-bold tracking-tight">{t("yourWorkforce", { defaultValue: "Your Workforce" })}</h1>
+					<p className="text-muted-foreground mt-1">{t("manageTasks", { defaultValue: "Manage and assign tasks to your AI employees." })}</p>
 				</div>
 				<Dialog open={createOpen} onOpenChange={setCreateOpen}>
-					<DialogTrigger render={<CustomButton size="sm"><PlusIcon className="w-4 h-4 mr-2" /> Create Employee</CustomButton>} />
+					<DialogTrigger render={<CustomButton size="sm"><PlusIcon className="w-4 h-4 me-2" /> {t("createEmployee", { defaultValue: "Create Employee" })}</CustomButton>} />
 					<DialogContent>
 						<form onSubmit={handleCreate}>
 							<DialogHeader>
-								<DialogTitle>Create Employee</DialogTitle>
+								<DialogTitle>{t("createEmployee", { defaultValue: "Create Employee" })}</DialogTitle>
 								<DialogDescription>
-									Give your new AI employee a name and a short description.
+									{t("createEmployeeDesc", { defaultValue: "Give your new AI employee a name and a short description." })}
 								</DialogDescription>
 							</DialogHeader>
 							<div className="flex flex-col gap-4 py-2">
 								<div className="flex flex-col gap-1.5">
-									<Label htmlFor="agent-name">Name</Label>
+									<Label htmlFor="agent-name">{t("name", { defaultValue: "Name" })}</Label>
 									<Input
 										id="agent-name"
-										placeholder="e.g. Copilot"
+										placeholder={t("namePlaceholder", { defaultValue: "e.g. Copilot" })}
 										required
 										maxLength={255}
 										value={name}
@@ -247,20 +249,20 @@ export default function AgentsPage() {
 									/>
 								</div>
 								<div className="flex flex-col gap-1.5">
-									<Label htmlFor="agent-description">Description</Label>
+									<Label htmlFor="agent-description">{t("description", { defaultValue: "Description" })}</Label>
 									<Textarea
 										id="agent-description"
-										placeholder="What does this employee do?"
+										placeholder={t("descriptionPlaceholder", { defaultValue: "What does this employee do?" })}
 										rows={3}
 										value={description}
 										onChange={(e) => setDescription(e.target.value)}
 									/>
 								</div>
 								<div className="flex flex-col gap-1.5">
-									<Label htmlFor="agent-instructions">Instructions</Label>
+									<Label htmlFor="agent-instructions">{t("instructions", { defaultValue: "Instructions" })}</Label>
 									<Textarea
 										id="agent-instructions"
-										placeholder="System prompt / behavior guidelines"
+										placeholder={t("instructionsPlaceholder", { defaultValue: "System prompt / behavior guidelines" })}
 										rows={3}
 										value={instructions}
 										onChange={(e) => setInstructions(e.target.value)}
@@ -273,7 +275,7 @@ export default function AgentsPage() {
 							<DialogFooter>
 								<Button type="submit" disabled={creating || !name.trim()}>
 									{creating && <Loader2Icon className="w-4 h-4 animate-spin" />}
-									{creating ? "Creating…" : "Create"}
+									{creating ? t("creating", { defaultValue: "Creating…" }) : t("create", { defaultValue: "Create" })}
 								</Button>
 							</DialogFooter>
 						</form>
@@ -285,7 +287,7 @@ export default function AgentsPage() {
 				<div className="flex items-center justify-between rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
 					<span>{error}</span>
 					<Button variant="ghost" size="sm" onClick={retry}>
-						<RefreshCwIcon className="w-4 h-4 mr-1.5" /> Retry
+						<RefreshCwIcon className="w-4 h-4 me-1.5" /> {t("retry", { defaultValue: "Retry" })}
 					</Button>
 				</div>
 			)}
@@ -308,12 +310,12 @@ export default function AgentsPage() {
 				</div>
 			) : agents.length === 0 && !error ? (
 				<div className="border-2 border-dashed border-border/60 rounded-2xl bg-muted/20 p-12 flex flex-col items-center justify-center text-center">
-					<h3 className="font-semibold text-lg text-foreground">No employees yet</h3>
+					<h3 className="font-semibold text-lg text-foreground">{t("noEmployeesYet", { defaultValue: "No employees yet" })}</h3>
 					<p className="text-sm text-muted-foreground mt-1 max-w-sm">
-						Create your first AI employee to start building your workforce.
+						{t("createFirstEmployee", { defaultValue: "Create your first AI employee to start building your workforce." })}
 					</p>
 					<CustomButton size="sm" className="mt-5" onClick={() => setCreateOpen(true)}>
-						<PlusIcon className="w-4 h-4 mr-2" /> Create Employee
+						<PlusIcon className="w-4 h-4 me-2" /> {t("createEmployee", { defaultValue: "Create Employee" })}
 					</CustomButton>
 				</div>
 			) : (
@@ -332,7 +334,7 @@ export default function AgentsPage() {
 											</AvatarFallback>
 										</Avatar>
 										<Badge variant={isPublished ? "default" : "secondary"} className={`font-medium ${statusMeta.className}`}>
-											{statusMeta.label}
+											{t(statusMeta.label)}
 										</Badge>
 									</div>
 
@@ -340,20 +342,20 @@ export default function AgentsPage() {
 										<span className="font-semibold text-lg text-foreground truncate">{agent.name}</span>
 										<span className="text-sm font-medium text-primary truncate mb-3">{agent.model}</span>
 										<p className="text-sm text-muted-foreground line-clamp-3">
-											{agent.description || "No description yet."}
+											{agent.description || t("noDescription", { defaultValue: "No description yet." })}
 										</p>
 									</div>
 
 									<div className="mt-auto pt-4 flex items-center text-xs text-muted-foreground">
 										<span className="truncate">
-											Created {new Date(agent.createdAt).toLocaleDateString()}
+											{t("created", { defaultValue: "Created" })} {new Date(agent.createdAt).toLocaleDateString()}
 										</span>
 									</div>
 								</Link>
 
 								<div className="bg-muted/30 px-5 py-3 border-t border-border/40 flex items-center gap-2">
 									<CustomButton href={`/agent/${agent.id}`} size="sm" className="flex-1 justify-center py-1.5 text-xs shadow-sm" showArrow={false}>
-										View
+										{t("view", { defaultValue: "View" })}
 									</CustomButton>
 									<CustomButton
 										variant="secondary"
@@ -379,15 +381,15 @@ export default function AgentsPage() {
 										} />
 										<AlertDialogContent>
 											<AlertDialogHeader>
-												<AlertDialogTitle>Delete Employee?</AlertDialogTitle>
+												<AlertDialogTitle>{t("deleteEmployeeQ", { defaultValue: "Delete Employee?" })}</AlertDialogTitle>
 												<AlertDialogDescription>
-													Are you sure you want to delete <strong>{agent.name}</strong>? This cannot be undone.
+													{t("deleteConfirmText", { defaultValue: "Are you sure you want to delete " })}<strong>{agent.name}</strong>{t("deleteUndone", { defaultValue: "? This cannot be undone." })}
 												</AlertDialogDescription>
 											</AlertDialogHeader>
 											<AlertDialogFooter>
-												<AlertDialogCancel>Cancel</AlertDialogCancel>
+												<AlertDialogCancel>{t("cancel", { defaultValue: "Cancel" })}</AlertDialogCancel>
 												<AlertDialogAction render={
-													<CustomButton variant="danger" size="xs" showArrow={false} onClick={() => handleDelete(agent)}>Confirm Delete</CustomButton>
+													<CustomButton variant="danger" size="xs" showArrow={false} onClick={() => handleDelete(agent)}>{t("confirmDelete", { defaultValue: "Confirm Delete" })}</CustomButton>
 												} className="p-0 border-0 bg-transparent hover:bg-transparent shadow-none ring-0" />
 											</AlertDialogFooter>
 										</AlertDialogContent>

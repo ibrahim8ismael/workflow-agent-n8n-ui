@@ -8,8 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ArrowLeftIcon } from "lucide-react";
 import {
-  SETTINGS_NAV,
-  PAGE_META,
+  useSettingsData,
   type SettingsPageId,
 } from "@/components/settings/settings-data";
 import { GeneralPage } from "@/components/settings/pages/general-page";
@@ -17,6 +16,7 @@ import { ProfilePage } from "@/components/settings/pages/profile-page";
 import { BillingPage } from "@/components/settings/pages/billing-page";
 import { SecurityPage } from "@/components/settings/pages/security-page";
 import { useAuthStore } from "@/stores/auth-store";
+import { useTranslation } from "react-i18next";
 
 // ---------------------------------------------------------------------------
 // Page registry
@@ -45,6 +45,7 @@ function SidebarNav({
   onSelect: (id: SettingsPageId) => void;
   searchQuery: string;
 }) {
+  const { SETTINGS_NAV, PAGE_META } = useSettingsData();
   const q = searchQuery.toLowerCase();
 
   return (
@@ -164,6 +165,8 @@ export function SettingsView({ defaultTab }: { defaultTab?: SettingsPageId }) {
   );
   const [searchQuery, setSearchQuery] = React.useState("");
   const [isExiting, setIsExiting] = React.useState(false);
+  const { PAGE_META } = useSettingsData();
+  const { t } = useTranslation("settings");
 
   React.useEffect(() => {
     if (paramTab && paramTab !== activeTab) {
@@ -206,18 +209,18 @@ export function SettingsView({ defaultTab }: { defaultTab?: SettingsPageId }) {
               size="icon"
               className="size-8 rounded-lg text-muted-foreground hover:text-foreground"
               onClick={handleClose}
-              title="Back to Dashboard"
+              title={t("backToDashboard", { defaultValue: "Back to Dashboard" })}
             >
-              <ArrowLeftIcon className="size-4" />
+              <ArrowLeftIcon className="size-4 rtl:rotate-180" />
             </Button>
-            <h2 className="text-[15px] font-semibold tracking-tight">Settings</h2>
+            <h2 className="text-[15px] font-semibold tracking-tight">{t("settings", { defaultValue: "Settings" })}</h2>
           </div>
         </div>
 
         {/* Search Bar */}
         <div className="border-b border-border/50 px-4 py-3">
           <SearchInput
-            placeholder="Search settings..."
+            placeholder={t("searchSettings", { defaultValue: "Search settings..." })}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="h-9 text-[13px]"

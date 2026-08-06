@@ -1,3 +1,5 @@
+"use client";
+
 import {
 	Card,
 	CardContent,
@@ -6,6 +8,7 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { Delta, DeltaIcon, DeltaValue } from "@/components/shared/delta";
+import { useTranslation } from "react-i18next";
 
 type Stat = {
 	label: string;
@@ -14,34 +17,36 @@ type Stat = {
 	hint: string;
 };
 
-const stats: readonly Stat[] = [
-	{
-		label: "Total revenue",
-		value: "$284,920",
-		delta: 8.2,
-		hint: "vs prior 30 days",
-	},
-	{
-		label: "Orders",
-		value: "1,842",
-		delta: 4.1,
-		hint: "vs prior 30 days",
-	},
-	{
-		label: "Average order value",
-		value: "$154.60",
-		delta: -1.3,
-		hint: "vs prior 30 days",
-	},
-	{
-		label: "Store conversion",
-		value: "3.06%",
-		delta: 0.6,
-		hint: "vs prior 30 days",
-	},
-] as const;
-
 export function DashboardStats() {
+	const { t } = useTranslation("dashboard");
+
+	const stats: readonly Stat[] = [
+		{
+			label: t("totalRevenue", { defaultValue: "Total revenue" }),
+			value: "$284,920",
+			delta: 8.2,
+			hint: t("vsPrior30Days", { defaultValue: "vs prior 30 days" }),
+		},
+		{
+			label: t("orders", { defaultValue: "Orders" }),
+			value: "1,842",
+			delta: 4.1,
+			hint: t("vsPrior30Days", { defaultValue: "vs prior 30 days" }),
+		},
+		{
+			label: t("averageOrderValue", { defaultValue: "Average order value" }),
+			value: "$154.60",
+			delta: -1.3,
+			hint: t("vsPrior30Days", { defaultValue: "vs prior 30 days" }),
+		},
+		{
+			label: t("storeConversion", { defaultValue: "Store conversion" }),
+			value: "3.06%",
+			delta: 0.6,
+			hint: t("vsPrior30Days", { defaultValue: "vs prior 30 days" }),
+		},
+	] as const;
+
 	return (
 		<>
 			{stats.map((s) => (

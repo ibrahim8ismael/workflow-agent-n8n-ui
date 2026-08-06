@@ -148,7 +148,7 @@
     @apply font-sans;
   }
   html[dir="rtl"] {
-    font-family: 'Cairo', 'Tajawal', system-ui, -apple-system, sans-serif;
+    font-family: var(--font-ibm-plex-sans-arabic), system-ui, -apple-system, sans-serif;
   }
 }
 

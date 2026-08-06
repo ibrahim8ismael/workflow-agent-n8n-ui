@@ -45,17 +45,17 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   };
 
   const arrowSizes = {
-    xs: "h-3 w-3 ml-1",
-    sm: "h-3.5 w-3.5 ml-1.5",
-    md: "h-4 w-4 ml-2",
-    lg: "h-4 w-4 ml-2",
+    xs: "h-3 w-3 ms-1",
+    sm: "h-3.5 w-3.5 ms-1.5",
+    md: "h-4 w-4 ms-2",
+    lg: "h-4 w-4 ms-2",
   };
 
   const content = (
     <>
       {children}
       {showArrow && (
-        <ArrowRight className={cn("transition-transform group-hover:translate-x-1", arrowSizes[size])} />
+        <ArrowRight className={cn("transition-transform group-hover:translate-x-1 rtl:group-hover:-translate-x-1 rtl:rotate-180", arrowSizes[size])} />
       )}
     </>
   );

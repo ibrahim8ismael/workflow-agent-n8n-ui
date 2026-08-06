@@ -19,14 +19,19 @@ import CustomButton from "@/components/shared/Button";
 import { PlusIcon } from "lucide-react";
 
 import { NavUser } from "@/components/layout/nav-user";
+import { useTranslation } from "react-i18next";
+import { useLanguage } from "@/components/providers/language-provider";
 
 export function AppSidebar() {
+	const { t } = useTranslation("sidebar");
+	const { isRTL } = useLanguage();
+	
 	return (
-		<Sidebar collapsible="icon" variant="floating">
+		<Sidebar collapsible="icon" variant="floating" side={isRTL ? "right" : "left"}>
 			<SidebarHeader className="h-16 flex flex-row items-center justify-between px-4 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
 				<a href="#link" className="flex justify-start items-center overflow-hidden group-data-[collapsible=icon]:hidden">
 					<LogoIcon className="w-6 h-6 object-contain shrink-0 transition-all" />
-					<span className="font-bold text-xl tracking-tight ml-2">woops</span>
+					<span className="font-bold text-xl tracking-tight ms-2">woops</span>
 				</a>
 				<CustomSidebarTrigger />
 			</SidebarHeader>
@@ -41,7 +46,7 @@ export function AppSidebar() {
 						>
 							<span className="flex items-center gap-2 group-data-[collapsible=icon]:hidden">
 								<PlusIcon className="w-4 h-4" />
-								New chat
+								{t("newChat", { defaultValue: "New chat" })}
 							</span>
 							<PlusIcon className="hidden w-4 h-4 group-data-[collapsible=icon]:block" />
 						</CustomButton>

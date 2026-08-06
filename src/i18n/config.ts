@@ -10,6 +10,7 @@ import enSettings from "./locales/en/settings.json";
 import enBilling from "./locales/en/billing.json";
 import enKnowledge from "./locales/en/knowledge.json";
 import enAuth from "./locales/en/auth.json";
+import enIntegrations from "./locales/en/integrations.json";
 
 import arCommon from "./locales/ar/common.json";
 import arSidebar from "./locales/ar/sidebar.json";
@@ -19,6 +20,7 @@ import arSettings from "./locales/ar/settings.json";
 import arBilling from "./locales/ar/billing.json";
 import arKnowledge from "./locales/ar/knowledge.json";
 import arAuth from "./locales/ar/auth.json";
+import arIntegrations from "./locales/ar/integrations.json";
 
 export const resources = {
   en: {
@@ -30,6 +32,7 @@ export const resources = {
     billing: enBilling,
     knowledge: enKnowledge,
     auth: enAuth,
+    integrations: enIntegrations,
   },
   ar: {
     common: arCommon,
@@ -40,6 +43,7 @@ export const resources = {
     billing: arBilling,
     knowledge: arKnowledge,
     auth: arAuth,
+    integrations: arIntegrations,
   },
 } as const;
 
@@ -58,6 +62,7 @@ if (!i18n.isInitialized) {
       "billing",
       "knowledge",
       "auth",
+      "integrations",
     ],
     interpolation: {
       escapeValue: false,

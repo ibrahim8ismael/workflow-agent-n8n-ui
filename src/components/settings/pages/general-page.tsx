@@ -27,7 +27,7 @@ export function GeneralPage() {
           {/* ── Workspace section ── */}
           <SettingsSection
             title={t("workspace")}
-            description="Manage your workspace name, logo, and public slug used across the platform."
+            description={t("workspaceDesc", { defaultValue: "Manage your workspace name, logo, and public slug used across the platform." })}
           >
             <SettingsField label={t("workspaceName")} htmlFor="workspace-name">
               <Input
@@ -39,7 +39,7 @@ export function GeneralPage() {
 
             <SettingsField
               label={t("workspaceSlug")}
-              hint="Used in URLs and @mentions. Lowercase letters, numbers, and hyphens only."
+              hint={t("workspaceSlugHint", { defaultValue: "Used in URLs and @mentions. Lowercase letters, numbers, and hyphens only." })}
               htmlFor="workspace-slug"
             >
               <div className="flex items-center rounded-lg border border-input bg-background ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
@@ -58,7 +58,7 @@ export function GeneralPage() {
 
             <SettingsField
               label={t("workspaceLogo")}
-              hint="JPG, PNG or GIF · Maximum 1 MB"
+              hint={t("workspaceLogoHint", { defaultValue: "JPG, PNG or GIF · Maximum 1 MB" })}
             >
               <div className="flex items-center gap-4 rounded-xl border border-border/60 bg-muted/30 p-4">
                 <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 text-sm font-bold text-white shadow-sm">
@@ -67,7 +67,7 @@ export function GeneralPage() {
                 <div className="flex-1 min-w-0">
                   <p className="text-[13px] font-medium">Woops HQ</p>
                   <p className="text-[12px] text-muted-foreground">
-                    No custom logo uploaded
+                    {t("noCustomLogo", { defaultValue: "No custom logo uploaded" })}
                   </p>
                 </div>
                 <Button variant="outline" size="sm" className="shrink-0">
@@ -84,7 +84,7 @@ export function GeneralPage() {
           >
             <SettingsField
               label={t("timezone")}
-              hint="Used for scheduling, timestamps, and notifications."
+              hint={t("timezoneHint", { defaultValue: "Used for scheduling, timestamps, and notifications." })}
               htmlFor="timezone"
             >
               <Input
@@ -123,7 +123,7 @@ export function GeneralPage() {
           {/* ── Danger zone ── */}
           <SettingsSection
             title={t("dangerZone")}
-            description="Irreversible actions. Proceed with caution."
+            description={t("dangerZoneDesc", { defaultValue: "Irreversible actions. Proceed with caution." })}
           >
             <div className="flex items-center justify-between gap-4">
               <div>
