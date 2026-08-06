@@ -25,6 +25,7 @@ import { Button } from "@/components/ui/button";
 import SharedButton from "@/components/shared/Button";
 import { cn } from "@/lib/utils";
 import { InteractiveQuestionTool } from "@/components/assistant-ui/interactive-question-tool";
+import { AgentProgressToolUI } from "@/components/assistant-ui/agent-progress-tool";
 import {
   ActionBarMorePrimitive,
   ActionBarPrimitive,
@@ -595,6 +596,10 @@ const AssistantMessage: FC = () => {
                 if (part.toolName === "ask_user") {
                   // @ts-expect-error - InteractiveQuestionTool is a tool UI component
                   return <InteractiveQuestionTool {...part} />;
+                }
+                if (part.toolName === "show_agent_progress") {
+                  // @ts-expect-error - AgentProgressToolUI is a tool UI component
+                  return <AgentProgressToolUI {...part} />;
                 }
                 return part.toolUI ?? <ToolFallbackComponent {...part} />;
               case "data":
