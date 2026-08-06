@@ -172,6 +172,14 @@ export interface Conversation {
   deletedAt?: string | null;
 }
 
+export interface CreateConversationInput {
+  title?: string;
+  agentId: string;
+  userId?: string;
+  organizationId?: string;
+  metadata?: Record<string, unknown>;
+}
+
 export interface Message {
   id: string;
   conversationId: string;

@@ -98,6 +98,51 @@ export interface RequestOptions extends RequestInit {
   skipAuthRetry?: boolean;
 }
 
+async function streamRequest(
+  path: string,
+  body: unknown,
+  options: RequestOptions = {},
+): Promise<Response> {
+  const { skipAuthRetry, headers, ...rest } = options;
+  const finalHeaders: Record<string, string> = {
+    "Content-Type": "application/json",
+    Accept: "text/event-stream",
+    ...(headers as Record<string, string>),
+  };
+
+  const doFetch = async (): Promise<Response> => {
+    const token = getAccessToken();
+    if (token) finalHeaders.Authorization = `Bearer ${token}`;
+
+    return fetch(`${API_URL}${path}`, {
+      ...rest,
+      method: "POST",
+      body: JSON.stringify(body),
+      headers: finalHeaders,
+      credentials: "include",
+    });
+  };
+
+  let res = await doFetch();
+
+  if (res.status === 401 && !skipAuthRetry) {
+    const refreshed = await refreshToken();
+    if (refreshed) {
+      res = await doFetch();
+    } else {
+      emitAuthExpired();
+    }
+  }
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    const { message, code } = parseErrorBody(body);
+    throw new ApiError(res.status, message, code);
+  }
+
+  return res;
+}
+
 export function buildQuery(
   params?: Record<string, string | number | boolean | undefined | null>,
 ): string {
@@ -207,4 +252,6 @@ export const api = {
     }),
   delete: <T>(path: string, options?: RequestOptions) =>
     request<T>(path, { ...options, method: "DELETE" }),
+  stream: (path: string, body?: unknown, options?: RequestOptions) =>
+    streamRequest(path, body, options),
 };

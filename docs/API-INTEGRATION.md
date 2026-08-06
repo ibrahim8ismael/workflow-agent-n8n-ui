@@ -45,6 +45,8 @@ OTP codes are readable at `http://localhost:8025` (Mailpit web UI / API).
 | `knowledge.ts` | List / ingest / search knowledge |
 | `integrations.ts` | List org integrations |
 | `memory.ts` | List agent memory |
+| `conversations.ts` | Create conversations and list messages |
+| `runs.ts` | Synchronous and SSE-streamed runtime runs |
 
 ### How the client handles the API's quirks
 
@@ -102,7 +104,7 @@ Related-resource fetches fail silently to `[]` so a broken tab never blocks the 
 
 ## 4. Not yet integrated (planned follow-ups)
 
-- `/new` chat — still a **local mock LLM** (`useLocalRuntime`). Real wiring: `POST /runs` (202) + poll `GET /runs/:id` (no push events yet on the backend).
+- `/new` chat — uses `useLocalRuntime` as the client-side adapter and streams `POST /runs/stream` with `mode: "conversation"`. The first request creates the draft employee and a conversation; subsequent requests reuse the conversation ID. Tokens are appended as they arrive and completed/failed SSE events close the response.
 - Dashboard stats / billing — still mock data. Real sources: `GET /wallet`, `GET /usage`, `GET /subscriptions/current`.
 - `/knowledge` upload page — still simulated locally; `POST /knowledge/ingest` is ready in `src/lib/api/knowledge.ts`.
 - `/integrations` page — still mock; `src/lib/api/integrations.ts` is ready.
@@ -117,3 +119,19 @@ Related-resource fetches fail silently to `[]` so a broken tab never blocks the 
 - **`/auth/refresh` returns 401 `{success:false, error:{code:"NO_REFRESH_TOKEN"}}`** when the cookie is missing — expect this on first visit.
 - **Logout is 204**, `DELETE /agents/:id` is 200 with an empty body — `client.ts` handles both (204 → `null`, empty-body 200 → `null`).
 - Rate limit: 100 req/15 min per IP globally; 5 OTP requests/email/hour — expect 429s during bursty dev testing.
+
+## 6. Runtime modes
+
+Run requests use an explicit runtime mode:
+
+```ts
+type RuntimeMode = "conversation" | "employee_design" | "execution";
+```
+
+- `conversation` handles normal chat, brainstorming, questions, and clarification. It should use one text-generation path and lightweight context.
+- `employee_design` generates or revises an employee blueprint without executing tools or side effects.
+- `execution` handles planning, approvals, skill loading, tool execution, and result verification.
+
+The `/new` chat currently uses only `conversation` mode. Employee blueprint generation remains a separate product transition because the backend `employee_design` request currently requires an existing `agentId`.
+
+New chats default to `conversation`. The client should only send `employee_design` or `execution` after an explicit product transition. Runtime selection belongs at the API boundary; UI labels should not be coupled directly to backend runtime implementation details.

@@ -54,11 +54,11 @@ This document tracks which Woops frontend APIs are already connected and which p
 
 ## Priority 1: Employee Creation
 
-The `/new` page currently uses a local fake LLM runtime in `src/app/(dashboard)/new/page.tsx`.
+The `/new` page uses `useLocalRuntime` as a client-side adapter and streams requests to `POST /runs/stream` with `mode: "conversation"`. It creates and reuses a conversation so the backend can load history and persist messages.
 
 ### Existing APIs
 
-- `POST /runs`
+- `POST /runs` with explicit `mode`: `conversation`, `employee_design`, or `execution`
 - `GET /runs/:id`
 - `POST /conversations`
 - `GET /conversations/:id/messages`
@@ -74,7 +74,17 @@ Choose one of these approaches before wiring the UI:
 2. Create a draft employee first, then execute the prompt against that employee.
 3. Extend `POST /runs` to support blueprint generation without an `agentId`.
 
-The current runtime endpoint executes synchronously and returns a response containing `runId`, `response`, and `usage`. The frontend should await that response initially. Polling `GET /runs/:id` only becomes necessary if the backend changes to asynchronous execution.
+The synchronous `POST /runs` endpoint remains available for non-streaming callers. The `/new` chat consumes SSE events from `POST /runs/stream` and uses `run.completed` as the final response boundary. Polling `GET /runs/:id` is not needed for the streamed conversation path.
+
+### Runtime separation
+
+The frontend defaults `/new` to `mode: "conversation"`. The backend should route runtime modes behind a single API boundary while keeping orchestration separate:
+
+- Conversation mode must not invoke the planner, load execution skills, construct tools, request approval, or perform side effects.
+- Employee design mode may generate structured blueprints but must not execute them.
+- Execution mode owns planning, approval handling, skill loading, tool execution, and result verification.
+
+Shared context, conversation persistence, memory, knowledge, usage tracking, and error handling should remain reusable services rather than being duplicated across runtimes.
 
 ## Priority 2: Knowledge Base
 
