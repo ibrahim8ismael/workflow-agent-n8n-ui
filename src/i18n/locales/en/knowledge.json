@@ -6,5 +6,5 @@
   "addNote": "Add Note",
   "searchDocs": "Search documents...",
   "noDocuments": "No knowledge documents added yet.",
-  "fileTypes": "PDF, DOCX, TXT, CSV up to 10MB"
+  "fileTypes": "Markdown files up to 5MB"
 }

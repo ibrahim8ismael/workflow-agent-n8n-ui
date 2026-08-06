@@ -9,6 +9,9 @@ import {
   SearchIcon,
   UploadCloudIcon,
   UsersIcon,
+  EyeIcon,
+  Edit2Icon,
+  Trash2Icon,
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -16,8 +19,28 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { ApiError } from "@/lib/api/client";
-import { listKnowledge, uploadKnowledge } from "@/lib/api/knowledge";
+import { listKnowledge, uploadKnowledge, deleteKnowledge, updateKnowledge } from "@/lib/api/knowledge";
 import type { KnowledgeDocument } from "@/lib/api/types";
 import { formatDate } from "@/lib/formater";
 
@@ -42,6 +65,55 @@ export default function KnowledgePage() {
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [viewDocument, setViewDocument] = useState<KnowledgeDocument | null>(null);
+  const [editDocument, setEditDocument] = useState<KnowledgeDocument | null>(null);
+  const [deleteDocument, setDeleteDocument] = useState<KnowledgeDocument | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editContent, setEditContent] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    if (!deleteDocument) return;
+    setIsDeleting(true);
+    try {
+      await deleteKnowledge(deleteDocument.id);
+      setDocuments((current) => current.filter((d) => d.id !== deleteDocument.id));
+      setDeleteDocument(null);
+    } catch (err) {
+      setError(
+        err instanceof ApiError
+          ? err.message
+          : t("deleteError", "Could not delete this document."),
+      );
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleEdit = async () => {
+    if (!editDocument) return;
+    setIsEditing(true);
+    try {
+      const updated = await updateKnowledge(editDocument.id, {
+        title: editTitle,
+        content: editContent,
+      });
+      setDocuments((current) =>
+        current.map((d) => (d.id === updated.id ? updated : d)),
+      );
+      setEditDocument(null);
+    } catch (err) {
+      setError(
+        err instanceof ApiError
+          ? err.message
+          : t("editError", "Could not edit this document."),
+      );
+    } finally {
+      setIsEditing(false);
+    }
+  };
 
   const loadDocuments = useCallback(async () => {
     setIsLoading(true);
@@ -211,9 +283,24 @@ export default function KnowledgePage() {
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-background shadow-sm">
                       <FileTextIcon className="h-5 w-5 text-primary" />
                     </div>
-                    <Badge className="border-transparent bg-emerald-500/10 text-[10px] font-medium text-emerald-600">
-                      {t("synced", "Synced")}
-                    </Badge>
+                    <div className="flex items-center gap-1">
+                      <Badge className="mr-2 border-transparent bg-emerald-500/10 text-[10px] font-medium text-emerald-600">
+                        {t("synced", "Synced")}
+                      </Badge>
+                      <Button variant="ghost" size="icon-sm" onClick={() => setViewDocument(document)}>
+                        <EyeIcon className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon-sm" onClick={() => {
+                        setEditDocument(document);
+                        setEditTitle(document.title || "");
+                        setEditContent(document.content || "");
+                      }}>
+                        <Edit2Icon className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon-sm" onClick={() => setDeleteDocument(document)}>
+                        <Trash2Icon className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </div>
                   </div>
                   <span className="line-clamp-2 font-semibold text-foreground">{document.title}</span>
                   <div className="mt-auto flex items-center gap-2 pt-4 text-[11px] text-muted-foreground">
@@ -234,6 +321,86 @@ export default function KnowledgePage() {
           </div>
         )}
       </div>
+
+      {/* View Dialog */}
+      <Dialog open={!!viewDocument} onOpenChange={(open) => !open && setViewDocument(null)}>
+        <DialogContent className="gap-0 p-0 sm:max-w-3xl flex max-h-[90dvh] flex-col">
+          <DialogHeader className="border-b px-6 py-4 pt-5">
+            <DialogTitle>{viewDocument?.title}</DialogTitle>
+            <DialogDescription>
+              {viewDocument?.contentType} • {viewDocument ? documentSize(viewDocument) : ""}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="overflow-y-auto p-6">
+            <div className="whitespace-pre-wrap text-sm border border-border/50 p-4 rounded-md bg-muted/20">
+              {viewDocument?.content || t("noContent", "No content available.")}
+            </div>
+          </div>
+          <div className="flex items-center justify-end space-x-2 border-t p-4 mt-auto">
+            <DialogClose render={<Button type="button" variant="ghost" onClick={() => setViewDocument(null)} />}>
+              {t("close", "Close")}
+            </DialogClose>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Dialog */}
+      <Dialog open={!!editDocument} onOpenChange={(open) => !open && setEditDocument(null)}>
+        <DialogContent className="gap-0 p-0 sm:max-w-3xl flex max-h-[90dvh] flex-col">
+          <DialogHeader className="border-b px-6 py-4 pt-5">
+            <DialogTitle>{t("editDocument", "Edit Document")}</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-6 p-6 overflow-y-auto">
+            <div className="space-y-2">
+              <Label htmlFor="title">{t("title", "Title")}</Label>
+              <Input
+                id="title"
+                value={editTitle}
+                onChange={(e) => setEditTitle(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="content">{t("content", "Content")}</Label>
+              <Textarea
+                id="content"
+                className="min-h-[300px]"
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+              />
+            </div>
+          </div>
+          
+          <div className="flex items-center justify-end space-x-2 border-t p-4 mt-auto">
+            <DialogClose render={<Button type="button" variant="ghost" onClick={() => setEditDocument(null)} />}>
+              {t("cancel", "Cancel")}
+            </DialogClose>
+            <Button size="sm" onClick={handleEdit} disabled={isEditing}>
+              {isEditing && <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />}
+              {t("save", "Save")}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Alert Dialog */}
+      <AlertDialog open={!!deleteDocument} onOpenChange={(open) => !open && setDeleteDocument(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("deleteConfirmTitle", "Are you sure?")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("deleteConfirmDesc", "This action cannot be undone. This will permanently delete the document.")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>{t("cancel", "Cancel")}</AlertDialogCancel>
+            <Button variant="destructive" onClick={handleDelete} disabled={isDeleting}>
+              {isDeleting && <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />}
+              {t("delete", "Delete")}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
