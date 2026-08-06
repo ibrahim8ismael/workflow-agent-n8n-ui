@@ -21,41 +21,36 @@ interface LanguageContextType {
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
+function updateHtmlAttributes(lang: LanguageCode) {
+  const dir = getDirection(lang);
+  if (typeof document === "undefined") return;
+
+  document.documentElement.lang = lang;
+  document.documentElement.dir = dir;
+  document.documentElement.classList.toggle("rtl", dir === "rtl");
+  document.documentElement.classList.toggle("ltr", dir === "ltr");
+}
+
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguageState] = useState<LanguageCode>(DEFAULT_LANGUAGE);
-  const [mounted, setMounted] = useState(false);
 
-  // Initialize from LocalStorage or default
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(LANGUAGE_STORAGE_KEY) as LanguageCode | null;
-      if (stored && SUPPORTED_LANGUAGES[stored]) {
-        setLanguageState(stored);
-        i18n.changeLanguage(stored);
-        updateHtmlAttributes(stored);
-      } else {
-        updateHtmlAttributes(DEFAULT_LANGUAGE);
+    const timer = window.setTimeout(() => {
+      try {
+        const stored = localStorage.getItem(LANGUAGE_STORAGE_KEY) as LanguageCode | null;
+        if (stored && SUPPORTED_LANGUAGES[stored]) setLanguageState(stored);
+      } catch {
+        // Keep the default language when browser storage is unavailable.
       }
-    } catch {
-      updateHtmlAttributes(DEFAULT_LANGUAGE);
-    }
-    setMounted(true);
+    }, 0);
+
+    return () => window.clearTimeout(timer);
   }, []);
 
-  const updateHtmlAttributes = (lang: LanguageCode) => {
-    const dir = getDirection(lang);
-    if (typeof document !== "undefined") {
-      document.documentElement.lang = lang;
-      document.documentElement.dir = dir;
-      if (dir === "rtl") {
-        document.documentElement.classList.add("rtl");
-        document.documentElement.classList.remove("ltr");
-      } else {
-        document.documentElement.classList.add("ltr");
-        document.documentElement.classList.remove("rtl");
-      }
-    }
-  };
+  useEffect(() => {
+    i18n.changeLanguage(language);
+    updateHtmlAttributes(language);
+  }, [language]);
 
   const changeLanguage = (newLang: LanguageCode) => {
     if (!SUPPORTED_LANGUAGES[newLang]) return;
