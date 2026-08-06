@@ -5,19 +5,21 @@ import { useLocalRuntime, AssistantRuntimeProvider } from "@assistant-ui/react";
 import { Thread } from "@/components/assistant-ui/thread";
 import { ChatContext, type EffortLevel } from "@/lib/chat-context";
 import { createAgent } from "@/lib/api/agents";
-import { createRun } from "@/lib/api/runs";
+import { streamRun } from "@/lib/api/runs";
+import { createConversation } from "@/lib/api/conversations";
 
 export default function NewChatPage() {
 	const [effortLevel, setEffortLevel] = useState<EffortLevel>("Medium");
 	const effortLevelRef = useRef<EffortLevel>(effortLevel);
 	const agentIdRef = useRef<string | null>(null);
+	const conversationIdRef = useRef<string | null>(null);
 
 	useEffect(() => {
 		effortLevelRef.current = effortLevel;
 	}, [effortLevel]);
 
 	const runtime = useLocalRuntime({
-		async *run({ messages }) {
+		async *run({ messages, abortSignal }) {
 			const lastMessage = messages[messages.length - 1];
 			const prompt = lastMessage.content[0]?.type === "text" ? lastMessage.content[0].text : "";
 
@@ -35,24 +37,39 @@ export default function NewChatPage() {
 						instructions: contextPrompt,
 					});
 					agentIdRef.current = agent.id;
+					const conversation = await createConversation({
+						agentId: agent.id,
+						title: prompt.slice(0, 100),
+					});
+					conversationIdRef.current = conversation.id;
 				}
 				const agentId = agentIdRef.current;
 				if (!agentId) throw new Error("Failed to create employee");
 
-				const response = await createRun({
+				let responseText = "";
+				for await (const event of streamRun({
 					agentId,
 					userMessage: contextPrompt,
+					mode: "conversation",
+					conversationId: conversationIdRef.current ?? undefined,
 					effort:
 						currentEffort === "Low"
 							? "low"
 							: currentEffort === "Max Effort"
 								? "high"
 								: "medium",
-				});
-
-				yield {
-					content: [{ type: "text", text: response.response }],
-				};
+				}, { signal: abortSignal })) {
+					if (event.type === "token") {
+						responseText += event.content;
+						yield { content: [{ type: "text", text: responseText }] };
+					} else if (event.type === "run.completed") {
+						if (event.response !== responseText) {
+							yield { content: [{ type: "text", text: event.response }] };
+						}
+					} else if (event.type === "run.failed") {
+						throw new Error(event.message);
+					}
+				}
 			} catch (error) {
 				console.error("Failed to execute run:", error);
 				yield {
