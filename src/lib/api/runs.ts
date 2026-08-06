@@ -12,6 +12,7 @@ export interface CreateRunInput {
 
 export interface RunResponse {
   runId: string;
+  conversationId?: string;
   mode?: RuntimeMode;
   status?: string;
   response: string;
@@ -24,11 +25,12 @@ export interface RunResponse {
 }
 
 export type RunStreamEvent =
-  | { type: "run.started"; runId: string; mode: RuntimeMode }
+  | { type: "run.started"; runId: string; mode: RuntimeMode; conversationId?: string }
   | { type: "token"; runId: string; content: string }
   | {
       type: "run.completed";
       runId: string;
+      conversationId?: string;
       response: string;
       usage: NonNullable<RunResponse["usage"]>;
     }

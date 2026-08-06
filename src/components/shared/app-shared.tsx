@@ -46,13 +46,6 @@ export const navGroups: SidebarNavGroup[] = [
 			},
 		],
 	},
-	{
-		label: "Chat History",
-		items: Array.from({ length: 15 }).map((_, i) => ({
-			title: `Chat Session ${i + 1}`,
-			path: `#/chat/${i + 1}`,
-		})),
-	},
 ];
 
 export const footerNavLinks: SidebarNavItem[] = [

@@ -13,10 +13,44 @@ import {
 } from "@/components/ui/sidebar";
 import { CustomSidebarTrigger } from "@/components/layout/custom-sidebar-trigger";
 import { NavGroup } from "@/components/layout/nav-group";
-import { footerNavLinks, navGroups } from "@/components/shared/app-shared";
-import { LatestChange } from "@/components/dashboard/latest-change";
+import { navGroups } from "@/components/shared/app-shared";
 import CustomButton from "@/components/shared/Button";
 import { PlusIcon } from "lucide-react";
+import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
+import Link from "next/link";
+import { listConversations } from "@/lib/api/conversations";
+import type { Conversation } from "@/lib/api/types";
+import { SidebarGroupLabel } from "@/components/ui/sidebar";
+
+function ChatHistory() {
+	const pathname = usePathname();
+	const [conversations, setConversations] = useState<Conversation[]>([]);
+
+	useEffect(() => {
+		let cancelled = false;
+		// Include legacy chats created before conversation ownership was sent by the client.
+		listConversations({ status: "ACTIVE", take: 50 })
+			.then((items) => { if (!cancelled) setConversations(items); })
+			.catch(() => { if (!cancelled) setConversations([]); });
+		return () => { cancelled = true; };
+	}, [pathname]);
+
+	return (
+		<SidebarGroup className="mt-12 flex-1 overflow-hidden group-data-[collapsible=icon]:hidden">
+			<SidebarGroupLabel>Chat History</SidebarGroupLabel>
+			<SidebarMenu className="flex-1 overflow-y-auto">
+				{conversations.map((conversation) => (
+					<SidebarMenuItem key={conversation.id}>
+						<SidebarMenuButton render={<Link href={`/new/${conversation.id}`} />}>
+							<span className="truncate">{conversation.title || "New chat"}</span>
+						</SidebarMenuButton>
+					</SidebarMenuItem>
+				))}
+			</SidebarMenu>
+		</SidebarGroup>
+	);
+}
 
 import { NavUser } from "@/components/layout/nav-user";
 import { useTranslation } from "react-i18next";
@@ -52,16 +86,8 @@ export function AppSidebar() {
 						</CustomButton>
 					</SidebarMenuItem>
 				</SidebarGroup>
-				{navGroups.map((group, index) => {
-					if (group.label === "Chat History") {
-						return (
-							<div key={`sidebar-group-${index}`} className="mt-12 flex-1 overflow-hidden flex flex-col">
-								<NavGroup {...group} />
-							</div>
-						);
-					}
-					return <NavGroup key={`sidebar-group-${index}`} {...group} />;
-				})}
+				{navGroups.map((group, index) => <NavGroup key={`sidebar-group-${index}`} {...group} />)}
+				<ChatHistory />
 			</SidebarContent>
 			<SidebarFooter>
 				<SidebarMenu>
