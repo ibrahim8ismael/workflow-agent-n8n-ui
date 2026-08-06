@@ -20,6 +20,16 @@ import {
 	AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
+	Dialog,
+	DialogContent,
+	DialogHeader,
+	DialogTitle,
+	DialogFooter,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import {
 	ArrowLeftIcon,
 	Settings2Icon,
 	Trash2Icon,
@@ -28,11 +38,13 @@ import {
 	FileTextIcon,
 	Loader2Icon,
 	RefreshCwIcon,
+	Edit2Icon,
+	PlusIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ApiError } from "@/lib/api/client";
-import { archiveAgent, detachSkill, getAgent, listAgentSkills } from "@/lib/api/agents";
-import { listAgentMemory } from "@/lib/api/memory";
+import { archiveAgent, detachSkill, getAgent, listAgentSkills, updateAgent } from "@/lib/api/agents";
+import { listAgentMemory, createMemory, deleteMemory } from "@/lib/api/memory";
 import { listKnowledge } from "@/lib/api/knowledge";
 import { listOrganizationIntegrations } from "@/lib/api/integrations";
 import type { Agent, AgentStatus, Integration, KnowledgeDocument, Memory, Skill } from "@/lib/api/types";
@@ -87,6 +99,14 @@ export default function AgentDetailPage() {
 	const [error, setError] = useState<string | null>(null);
 	const [busySkillId, setBusySkillId] = useState<string | null>(null);
 	const [activeTab, setActiveTab] = useState<TabType>("prompts");
+
+	const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+	const [editAgentData, setEditAgentData] = useState<Partial<Agent>>({});
+	const [isSavingAgent, setIsSavingAgent] = useState(false);
+
+	const [isAddMemoryDialogOpen, setIsAddMemoryDialogOpen] = useState(false);
+	const [newMemory, setNewMemory] = useState({ type: "AGENT" as const, key: "", content: "" });
+	const [isSavingMemory, setIsSavingMemory] = useState(false);
 
 	const load = useCallback(async () => {
 		try {
@@ -204,6 +224,56 @@ export default function AgentDetailPage() {
 		}
 	};
 
+	const handleSaveAgent = async () => {
+		if (!agent) return;
+		setIsSavingAgent(true);
+		try {
+			const updated = await updateAgent(agent.id, {
+				name: editAgentData.name,
+				instructions: editAgentData.instructions ?? undefined,
+				personality: editAgentData.personality ?? undefined,
+			});
+			setAgent(updated);
+			setIsEditDialogOpen(false);
+		} catch (err) {
+			if (err instanceof ApiError) setError(err.message);
+			else setError("Could not update employee.");
+		} finally {
+			setIsSavingAgent(false);
+		}
+	};
+
+	const handleAddMemory = async () => {
+		if (!agent) return;
+		setIsSavingMemory(true);
+		try {
+			const added = await createMemory({
+				agentId: agent.id,
+				type: newMemory.type,
+				key: newMemory.key,
+				content: newMemory.content,
+			});
+			setMemory([added, ...memory]);
+			setIsAddMemoryDialogOpen(false);
+			setNewMemory({ type: "AGENT", key: "", content: "" });
+		} catch (err) {
+			if (err instanceof ApiError) setError(err.message);
+			else setError("Could not add memory.");
+		} finally {
+			setIsSavingMemory(false);
+		}
+	};
+
+	const handleDeleteMemory = async (memoryId: string) => {
+		try {
+			await deleteMemory(memoryId);
+			setMemory(memory.filter(m => m.id !== memoryId));
+		} catch (err) {
+			if (err instanceof ApiError) setError(err.message);
+			else setError("Could not delete memory.");
+		}
+	};
+
 	if (loading) {
 		return (
 			<div className="flex flex-col gap-6 max-w-5xl mx-auto w-full pb-10">
@@ -263,6 +333,22 @@ export default function AgentDetailPage() {
 					</div>
 				</div>
 				<div className="flex items-center gap-2">
+					<CustomButton 
+						variant="secondary" 
+						size="sm" 
+						showArrow={false} 
+						onClick={() => {
+							setEditAgentData({
+								name: agent.name,
+								instructions: agent.instructions || "",
+								personality: agent.personality || "",
+							});
+							setIsEditDialogOpen(true);
+						}}
+					>
+						<Edit2Icon className="w-4 h-4 mr-2" />
+						Edit
+					</CustomButton>
 					{agent.status !== "ARCHIVED" && (
 						<CustomButton variant="secondary" size="sm" showArrow={false} onClick={handleToggleStatus}>
 							Archive
@@ -330,9 +416,14 @@ export default function AgentDetailPage() {
 
 						{/* Memory Context */}
 						<Card className="overflow-hidden border-border/50 bg-card/40 flex flex-col shadow-sm">
-							<div className="bg-muted/30 px-5 py-3 border-b border-border/40 flex items-center gap-2">
-								<img src="/3d-icons/3dicons-notebook-dynamic-color.png" alt="Active Memory" className="w-5 h-5 object-contain" />
-								<h3 className="font-semibold text-sm">Active Memory</h3>
+							<div className="bg-muted/30 px-5 py-3 border-b border-border/40 flex items-center justify-between">
+								<div className="flex items-center gap-2">
+									<img src="/3d-icons/3dicons-notebook-dynamic-color.png" alt="Active Memory" className="w-5 h-5 object-contain" />
+									<h3 className="font-semibold text-sm">Active Memory</h3>
+								</div>
+								<Button variant="ghost" size="sm" className="h-8 text-xs font-medium" onClick={() => setIsAddMemoryDialogOpen(true)}>
+									<PlusIcon className="w-3.5 h-3.5 mr-1" /> Add Entry
+								</Button>
 							</div>
 							<div className="p-5">
 								{memory.length === 0 ? (
@@ -340,12 +431,22 @@ export default function AgentDetailPage() {
 								) : (
 									<div className="flex flex-col gap-3">
 										{memory.map((entry) => (
-											<div key={entry.id} className="rounded-lg border border-border/40 bg-muted/20 p-4">
+											<div key={entry.id} className="group rounded-lg border border-border/40 bg-muted/20 p-4 relative">
 												<div className="flex items-center justify-between mb-1">
 													<span className="text-xs font-semibold text-foreground uppercase tracking-wide">{entry.type}</span>
-													<span className="text-xs text-muted-foreground font-mono">{entry.key}</span>
+													<div className="flex items-center gap-3">
+														<span className="text-xs text-muted-foreground font-mono">{entry.key}</span>
+														<Button 
+															variant="ghost" 
+															size="icon" 
+															className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive hover:bg-destructive/10"
+															onClick={() => handleDeleteMemory(entry.id)}
+														>
+															<Trash2Icon className="h-3 w-3" />
+														</Button>
+													</div>
 												</div>
-												<p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{entry.content}</p>
+												<p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap pr-8">{entry.content}</p>
 											</div>
 										))}
 									</div>
@@ -497,6 +598,90 @@ export default function AgentDetailPage() {
 				)}
 
 			</div>
+
+			{/* Edit Agent Dialog */}
+			<Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+				<DialogContent className="sm:max-w-[500px]">
+					<DialogHeader>
+						<DialogTitle>Edit Employee</DialogTitle>
+					</DialogHeader>
+					<div className="grid gap-4 py-4">
+						<div className="grid gap-2">
+							<Label htmlFor="name">Name</Label>
+							<Input 
+								id="name" 
+								value={editAgentData.name || ""} 
+								onChange={(e) => setEditAgentData({ ...editAgentData, name: e.target.value })} 
+							/>
+						</div>
+						<div className="grid gap-2">
+							<Label htmlFor="instructions">System Prompt / Instructions</Label>
+							<Textarea 
+								id="instructions" 
+								className="min-h-[120px]"
+								value={editAgentData.instructions || ""} 
+								onChange={(e) => setEditAgentData({ ...editAgentData, instructions: e.target.value })} 
+							/>
+						</div>
+						<div className="grid gap-2">
+							<Label htmlFor="personality">Personality</Label>
+							<Input 
+								id="personality" 
+								value={editAgentData.personality || ""} 
+								onChange={(e) => setEditAgentData({ ...editAgentData, personality: e.target.value })} 
+							/>
+						</div>
+					</div>
+					<DialogFooter>
+						<Button variant="outline" onClick={() => setIsEditDialogOpen(false)} disabled={isSavingAgent}>
+							Cancel
+						</Button>
+						<Button onClick={handleSaveAgent} disabled={isSavingAgent}>
+							{isSavingAgent && <Loader2Icon className="w-4 h-4 mr-2 animate-spin" />}
+							Save Changes
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
+
+			{/* Add Memory Dialog */}
+			<Dialog open={isAddMemoryDialogOpen} onOpenChange={setIsAddMemoryDialogOpen}>
+				<DialogContent className="sm:max-w-[500px]">
+					<DialogHeader>
+						<DialogTitle>Add Memory Entry</DialogTitle>
+					</DialogHeader>
+					<div className="grid gap-4 py-4">
+						<div className="grid gap-2">
+							<Label htmlFor="memory-key">Key / Topic</Label>
+							<Input 
+								id="memory-key" 
+								placeholder="e.g. user_preference_language"
+								value={newMemory.key} 
+								onChange={(e) => setNewMemory({ ...newMemory, key: e.target.value })} 
+							/>
+						</div>
+						<div className="grid gap-2">
+							<Label htmlFor="memory-content">Content</Label>
+							<Textarea 
+								id="memory-content" 
+								placeholder="The user prefers communication in Arabic."
+								className="min-h-[100px]"
+								value={newMemory.content} 
+								onChange={(e) => setNewMemory({ ...newMemory, content: e.target.value })} 
+							/>
+						</div>
+					</div>
+					<DialogFooter>
+						<Button variant="outline" onClick={() => setIsAddMemoryDialogOpen(false)} disabled={isSavingMemory}>
+							Cancel
+						</Button>
+						<Button onClick={handleAddMemory} disabled={isSavingMemory || !newMemory.key || !newMemory.content}>
+							{isSavingMemory && <Loader2Icon className="w-4 h-4 mr-2 animate-spin" />}
+							Save Memory
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 		</div>
 	);
 }

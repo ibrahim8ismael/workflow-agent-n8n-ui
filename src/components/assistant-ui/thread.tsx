@@ -439,17 +439,15 @@ const Composer: FC = () => {
 };
 
 import { DynamicBarsIcon } from "@/components/ui/ai-chat-input";
-import { ChatContext, ChatMode, EffortLevel } from "@/lib/chat-context";
+import { ChatContext, EffortLevel } from "@/lib/chat-context";
 
-const MODES: ChatMode[] = ["Ask", "Plan", "Build"];
 const EFFORTS: EffortLevel[] = ["Low", "Medium", "Max Effort"];
 
 const ComposerAction: FC<{ onSend: () => void }> = ({ onSend }) => {
   const context = useContext(ChatContext);
   if (!context) return null;
-  const { activeMode, setActiveMode, effortLevel, setEffortLevel } = context;
+  const { effortLevel, setEffortLevel } = context;
 
-  const cycleMode = () => setActiveMode(MODES[(MODES.indexOf(activeMode) + 1) % MODES.length]);
   const cycleEffort = () => setEffortLevel(EFFORTS[(EFFORTS.indexOf(effortLevel) + 1) % EFFORTS.length]);
 
   return (
@@ -469,18 +467,6 @@ const ComposerAction: FC<{ onSend: () => void }> = ({ onSend }) => {
         >
           <DynamicBarsIcon level={effortLevel} />
           <span className="text-xs font-semibold">{effortLevel}</span>
-        </button>
-
-        <button
-          type="button" onClick={cycleMode}
-          className={cn(
-            "group flex items-center gap-1 rounded-full px-2 py-1 transition-all hover:bg-accent/60",
-            activeMode === "Ask" ? "bg-blue-500/10 text-blue-600 dark:text-blue-400" : "",
-            activeMode === "Plan" ? "bg-purple-500/10 text-purple-600 dark:text-purple-400" : "",
-            activeMode === "Build" ? "bg-orange-500/10 text-orange-600 dark:text-orange-400" : "",
-          )}
-        >
-          <span className="text-xs font-semibold">{activeMode}</span>
         </button>
       </div>
       
