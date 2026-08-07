@@ -337,7 +337,8 @@ const Composer: FC = () => {
           <div 
             ref={backdropRef}
             aria-hidden="true" 
-            className="absolute inset-0 z-0 pointer-events-none w-full h-full max-h-32 min-h-10 px-2.5 py-1 text-base overflow-y-auto whitespace-pre-wrap break-words"
+            dir="auto"
+            className="aui-mixed-script absolute inset-0 z-0 pointer-events-none w-full h-full max-h-32 min-h-10 px-2.5 py-1 text-base overflow-y-auto whitespace-pre-wrap break-words"
             style={{ color: "transparent" }}
           >
              {renderFormattedText(composerValue)}
@@ -422,7 +423,7 @@ const Composer: FC = () => {
             }}
             placeholder="Send a message..."
             className={cn(
-              "aui-composer-input relative z-10 caret-primary max-h-32 min-h-10 w-full resize-none bg-transparent px-2.5 py-1 text-base outline-none",
+              "aui-composer-input aui-mixed-script relative z-10 caret-primary max-h-32 min-h-10 w-full resize-none bg-transparent px-2.5 py-1 text-base outline-none",
               composerValue.length > 0 ? "text-transparent" : "text-foreground placeholder:text-muted-foreground/80"
             )}
             style={{ color: composerValue.length > 0 ? 'transparent' : undefined }}
@@ -527,7 +528,8 @@ const AssistantMessage: FC = () => {
     >
       <div
         data-slot="aui_assistant-message-content"
-        className="text-foreground px-2 leading-relaxed wrap-break-word"
+        dir="auto"
+        className="aui-mixed-script text-foreground px-2 leading-relaxed wrap-break-word"
       >
         <MessagePrimitive.GroupedParts
           groupBy={(part, context) => {
@@ -652,13 +654,14 @@ const UserMessage: FC = () => {
   return (
     <MessagePrimitive.Root
       data-slot="aui_user-message-root"
+      dir="auto"
       className="fade-in slide-in-from-bottom-1 animate-in grid auto-rows-auto grid-cols-[minmax(72px,1fr)_auto] content-start gap-y-2 px-2 duration-150 [contain-intrinsic-size:auto_200px] [content-visibility:auto] [&:where(>*)]:col-start-2"
       data-role="user"
     >
       <UserMessageAttachments />
 
       <div className="aui-user-message-content-wrapper relative col-start-2 min-w-0">
-        <div className="aui-user-message-content peer bg-muted text-foreground rounded-xl px-4 py-2 wrap-break-word empty:hidden">
+        <div dir="auto" className="aui-user-message-content aui-mixed-script peer bg-muted text-foreground rounded-xl px-4 py-2 wrap-break-word empty:hidden">
           <MessagePrimitive.Parts />
         </div>
         <div className="aui-user-action-bar-wrapper absolute start-0 top-1/2 -translate-x-full -translate-y-1/2 pe-2 peer-empty:hidden rtl:translate-x-full">
@@ -694,7 +697,8 @@ const EditComposer: FC = () => {
     >
       <ComposerPrimitive.Root className="aui-edit-composer-root border-border/60 dark:border-muted-foreground/15 ms-auto flex w-full max-w-[85%] flex-col rounded-(--composer-radius) border bg-(--composer-bg) shadow-[0_4px_16px_-8px_rgba(0,0,0,0.08),0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-none">
         <ComposerPrimitive.Input
-          className="aui-edit-composer-input text-foreground min-h-14 w-full resize-none bg-transparent px-4 pt-3 pb-1 text-base outline-none"
+          dir="auto"
+          className="aui-edit-composer-input aui-mixed-script text-foreground min-h-14 w-full resize-none bg-transparent px-4 pt-3 pb-1 text-base outline-none"
           autoFocus
         />
         <div className="aui-edit-composer-footer mx-2.5 mb-2.5 flex items-center gap-1.5 self-end">

@@ -145,11 +145,13 @@
     @apply bg-background text-foreground;
   }
   html {
-    @apply font-sans;
+    font-family: var(--font-sans), var(--font-ibm-plex-sans-arabic), system-ui, -apple-system, sans-serif;
   }
-  html[dir="rtl"] {
-    font-family: var(--font-ibm-plex-sans-arabic), system-ui, -apple-system, sans-serif;
-  }
+}
+
+/* Keep Latin glyphs in the English font while Arabic glyphs fall back to the Arabic font. */
+.aui-mixed-script {
+  font-family: var(--font-sans), var(--font-ibm-plex-sans-arabic), system-ui, -apple-system, sans-serif;
 }
 
 @custom-variant data-open (&:where([data-state="open"], [data-open]:not([data-open="false"])));
