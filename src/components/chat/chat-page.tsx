@@ -75,7 +75,7 @@ export function ChatPage({ conversationId }: { conversationId: string }) {
 	if (!conversation) return <div className="flex h-full items-center justify-center p-6 text-sm text-muted-foreground">Loading chat...</div>;
 
 	return (
-		<div dir="ltr" className="flex h-full w-full flex-col overflow-hidden bg-background">
+		<div className="flex h-full w-full flex-col overflow-hidden bg-background">
 			<ChatContext.Provider value={{ effortLevel, setEffortLevel }}>
 				<AssistantRuntimeProvider runtime={runtime}><Thread /></AssistantRuntimeProvider>
 			</ChatContext.Provider>
