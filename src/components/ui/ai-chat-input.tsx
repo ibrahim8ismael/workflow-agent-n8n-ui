@@ -1,4 +1,3 @@
-/* eslint-disable */
 "use client";
 
 import * as React from "react";
@@ -125,7 +124,6 @@ export const MENTION_OPTIONS = [
   { id: "agent", label: "Agents", icon: BotIcon, description: "Mention an AI agent" },
   { id: "skill", label: "Skills", icon: ZapIcon, description: "Mention a specific skill" },
   { id: "memory", label: "Memory", icon: BrainCircuitIcon, description: "Reference memory context" },
-  { id: "knowledge", label: "Knowledge", icon: CompassIcon, description: "Reference knowledge bases" },
   { id: "integration", label: "Integrations", icon: CpuIcon, description: "Mention an integration" },
 ];
 
@@ -616,7 +614,6 @@ export const PromptInput = React.forwardRef<HTMLDivElement, PromptInputProps>(
         setIsSmoothResize(false);
         setExpanded(true);
       }
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [value, expanded, hasAttachments]);
 
     useEffect(() => {
@@ -652,7 +649,6 @@ export const PromptInput = React.forwardRef<HTMLDivElement, PromptInputProps>(
       setIsScrolling(scrollHeight > 160);
       
       setTimeout(updateFades, 0);
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [value, expanded]); 
 
     useEffect(() => {
@@ -768,7 +764,6 @@ export const PromptInput = React.forwardRef<HTMLDivElement, PromptInputProps>(
           ref={(node) => {
             if (typeof ref === "function") ref(node);
             else if (ref) ref.current = node;
-            // @ts-ignore
             internalContainerRef.current = node;
           }}
           onBlur={handleBlur}
@@ -890,6 +885,7 @@ export const PromptInput = React.forwardRef<HTMLDivElement, PromptInputProps>(
 
             <textarea
               ref={textareaRef}
+              dir="auto"
               value={value}
               onChange={(e) => {
                 handleValueChange(e.target.value);

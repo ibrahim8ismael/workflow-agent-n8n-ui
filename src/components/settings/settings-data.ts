@@ -7,7 +7,6 @@ import {
   ShieldCheckIcon,
   UsersIcon,
   PlugIcon,
-  DatabaseIcon,
   MessageCircleIcon,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -20,7 +19,6 @@ export type SettingsPageId =
   | "notifications"
   | "members"
   | "integrations"
-  | "knowledge"
   | "channels";
 
 export interface SettingsNavItem {
@@ -47,7 +45,6 @@ export function useSettingsData() {
         { id: "general", label: t("general", { defaultValue: "General" }), icon: BuildingIcon },
         { id: "members", label: t("members", { defaultValue: "Members" }), icon: UsersIcon, badge: "3" },
         { id: "integrations", label: t("integrations", { defaultValue: "Integrations" }), icon: PlugIcon },
-        { id: "knowledge", label: t("knowledge", { defaultValue: "Knowledge" }), icon: DatabaseIcon },
         { id: "channels", label: t("channels", { defaultValue: "Channels" }), icon: MessageCircleIcon },
       ],
     },
@@ -100,10 +97,6 @@ export function useSettingsData() {
     integrations: {
       title: t("integrations", { defaultValue: "Integrations" }),
       description: t("integrationsDesc", { defaultValue: "Connect third-party apps and services." }),
-    },
-    knowledge: {
-      title: t("knowledge", { defaultValue: "Knowledge" }),
-      description: t("knowledgeDesc", { defaultValue: "Manage documents, FAQs, and knowledge bases." }),
     },
     channels: {
       title: t("channels", { defaultValue: "Channels" }),

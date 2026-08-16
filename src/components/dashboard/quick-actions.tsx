@@ -27,7 +27,7 @@ export function QuickActions() {
 		{
 			title: t("reviewUnfulfilled", { defaultValue: "Review unfulfilled" }),
 			description: t("ordersWaitingToShip", { defaultValue: "Orders waiting to ship." }),
-			href: "#",
+			href: "/settings",
 			icon: (
 				<TruckIcon aria-hidden="true" />
 			),
@@ -35,7 +35,7 @@ export function QuickActions() {
 		{
 			title: t("storeSettings", { defaultValue: "Store settings" }),
 			description: t("paymentsCheckouts", { defaultValue: "Payments, checkouts etc." }),
-			href: "#",
+			href: "/settings",
 			icon: (
 				<SettingsIcon aria-hidden="true" />
 			),
@@ -43,7 +43,7 @@ export function QuickActions() {
 		{
 			title: t("exportSales", { defaultValue: "Export sales" }),
 			description: t("csvForAccountings", { defaultValue: "CSV for accountings." }),
-			href: "#",
+			href: "/settings",
 			icon: (
 				<DownloadIcon aria-hidden="true" />
 			),

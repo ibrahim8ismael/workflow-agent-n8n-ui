@@ -92,12 +92,10 @@
   "notifications": "الإشعارات",
   "members": "الأعضاء",
   "integrations": "التكاملات",
-  "knowledge": "قاعدة المعرفة",
   "channels": "قنوات الاتصال",
   "notificationsDesc": "قم بتهيئة كيف ومتى تتلقى الإشعارات.",
   "membersDesc": "إدارة أعضاء الفريق وأدوارهم.",
   "integrationsDesc": "ربط التطبيقات والخدمات الخارجية.",
-  "knowledgeDesc": "إدارة المستندات والأسئلة الشائعة وقواعد المعرفة.",
   "channelsDesc": "إعداد قنوات الاتصال لموظفيك.",
   "backToDashboard": "العودة إلى لوحة التحكم"
 }

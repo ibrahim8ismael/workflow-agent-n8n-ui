@@ -8,7 +8,6 @@ import enAgents from "./locales/en/agents.json";
 import enConversations from "./locales/en/conversations.json";
 import enSettings from "./locales/en/settings.json";
 import enBilling from "./locales/en/billing.json";
-import enKnowledge from "./locales/en/knowledge.json";
 import enAuth from "./locales/en/auth.json";
 import enIntegrations from "./locales/en/integrations.json";
 
@@ -18,7 +17,6 @@ import arAgents from "./locales/ar/agents.json";
 import arConversations from "./locales/ar/conversations.json";
 import arSettings from "./locales/ar/settings.json";
 import arBilling from "./locales/ar/billing.json";
-import arKnowledge from "./locales/ar/knowledge.json";
 import arAuth from "./locales/ar/auth.json";
 import arIntegrations from "./locales/ar/integrations.json";
 
@@ -30,7 +28,6 @@ export const resources = {
     conversations: enConversations,
     settings: enSettings,
     billing: enBilling,
-    knowledge: enKnowledge,
     auth: enAuth,
     integrations: enIntegrations,
   },
@@ -41,7 +38,6 @@ export const resources = {
     conversations: arConversations,
     settings: arSettings,
     billing: arBilling,
-    knowledge: arKnowledge,
     auth: arAuth,
     integrations: arIntegrations,
   },
@@ -60,7 +56,6 @@ if (!i18n.isInitialized) {
       "conversations",
       "settings",
       "billing",
-      "knowledge",
       "auth",
       "integrations",
     ],

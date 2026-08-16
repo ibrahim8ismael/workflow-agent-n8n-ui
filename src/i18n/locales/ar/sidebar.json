@@ -6,8 +6,6 @@
   "aiEmployees": "الموظفون الذكاء الاصطناعي",
   "agents": "الوكلاء",
   "createEmployee": "إضافة موظف",
-  "knowledgeBase": "قاعدة المعرفة",
-  "knowledge": "المعرفة",
   "integrations": "التكاملات",
   "management": "الإدارة",
   "settings": "الإعدادات",
@@ -19,5 +17,7 @@
   "docs": "الوثائق",
   "logout": "تسجيل الخروج",
   "credits": "الرصيد",
-  "activeWorkers": "الموظفون النشطون"
+  "activeWorkers": "الموظفون النشطون",
+  "chatHistory": "سجل المحادثات",
+  "workspaceOwner": "صاحب مساحة العمل"
 }

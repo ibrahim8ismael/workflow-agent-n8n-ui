@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -34,8 +34,6 @@ import {
 	Settings2Icon,
 	Trash2Icon,
 	EyeIcon,
-	LibraryIcon,
-	FileTextIcon,
 	Loader2Icon,
 	RefreshCwIcon,
 	Edit2Icon,
@@ -45,11 +43,10 @@ import { cn } from "@/lib/utils";
 import { ApiError } from "@/lib/api/client";
 import { archiveAgent, detachSkill, getAgent, listAgentSkills, updateAgent } from "@/lib/api/agents";
 import { listAgentMemory, createMemory, deleteMemory } from "@/lib/api/memory";
-import { listKnowledge } from "@/lib/api/knowledge";
 import { listOrganizationIntegrations } from "@/lib/api/integrations";
-import type { Agent, AgentStatus, Integration, KnowledgeDocument, Memory, Skill } from "@/lib/api/types";
+import type { Agent, AgentStatus, Integration, Memory, Skill } from "@/lib/api/types";
 
-type TabType = "prompts" | "skills" | "integrations" | "knowledge";
+type TabType = "prompts" | "skills" | "integrations";
 
 const STATUS_META: Record<AgentStatus, { label: string; className: string }> = {
 	PUBLISHED: { label: "Active", className: "bg-emerald-500/10 text-emerald-600 border-transparent" },
@@ -93,7 +90,6 @@ export default function AgentDetailPage() {
 	const [skills, setSkills] = useState<Skill[]>([]);
 	const [memory, setMemory] = useState<Memory[]>([]);
 	const [integrations, setIntegrations] = useState<Integration[]>([]);
-	const [knowledge, setKnowledge] = useState<KnowledgeDocument[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [notFound, setNotFound] = useState(false);
 	const [error, setError] = useState<string | null>(null);
@@ -108,7 +104,49 @@ export default function AgentDetailPage() {
 	const [newMemory, setNewMemory] = useState({ type: "AGENT" as const, key: "", content: "" });
 	const [isSavingMemory, setIsSavingMemory] = useState(false);
 
-	const load = useCallback(async () => {
+	useEffect(() => {
+		const controller = new AbortController();
+		(async () => {
+			try {
+				const agentData = await getAgent(id);
+				if (controller.signal.aborted) return;
+				setAgent(agentData);
+				setNotFound(false);
+				setError(null);
+
+				const [skillsData, memoryData] = await Promise.all([
+					listAgentSkills(id).catch(() => [] as Skill[]),
+					listAgentMemory(id).catch(() => [] as Memory[]),
+				]);
+				if (controller.signal.aborted) return;
+				setSkills(skillsData);
+				setMemory(memoryData);
+
+				if (agentData.organizationId) {
+					const integrationsData = await listOrganizationIntegrations(agentData.organizationId).catch(() => [] as Integration[]);
+					if (!controller.signal.aborted) setIntegrations(integrationsData);
+				} else {
+					setIntegrations([]);
+				}
+			} catch (err) {
+				if (controller.signal.aborted) return;
+				if (err instanceof ApiError && err.statusCode === 404) {
+					setNotFound(true);
+				} else if (err instanceof ApiError) {
+					setError(err.message);
+				} else {
+					setError("Could not load this employee. Please try again.");
+				}
+			} finally {
+				if (!controller.signal.aborted) setLoading(false);
+			}
+		})();
+		return () => controller.abort();
+	}, [id]);
+
+	const retry = async () => {
+		setLoading(true);
+		setError(null);
 		try {
 			const agentData = await getAgent(id);
 			setAgent(agentData);
@@ -123,15 +161,10 @@ export default function AgentDetailPage() {
 			setMemory(memoryData);
 
 			if (agentData.organizationId) {
-				const [integrationsData, knowledgeData] = await Promise.all([
-					listOrganizationIntegrations(agentData.organizationId).catch(() => [] as Integration[]),
-					listKnowledge({ organizationId: agentData.organizationId, take: 50 }).catch(() => [] as KnowledgeDocument[]),
-				]);
+				const integrationsData = await listOrganizationIntegrations(agentData.organizationId).catch(() => [] as Integration[]);
 				setIntegrations(integrationsData);
-				setKnowledge(knowledgeData);
 			} else {
 				setIntegrations([]);
-				setKnowledge([]);
 			}
 		} catch (err) {
 			if (err instanceof ApiError && err.statusCode === 404) {
@@ -144,52 +177,6 @@ export default function AgentDetailPage() {
 		} finally {
 			setLoading(false);
 		}
-	}, [id]);
-
-	useEffect(() => {
-		(async () => {
-			try {
-				const agentData = await getAgent(id);
-				setAgent(agentData);
-				setNotFound(false);
-				setError(null);
-
-				const [skillsData, memoryData] = await Promise.all([
-					listAgentSkills(id).catch(() => [] as Skill[]),
-					listAgentMemory(id).catch(() => [] as Memory[]),
-				]);
-				setSkills(skillsData);
-				setMemory(memoryData);
-
-				if (agentData.organizationId) {
-					const [integrationsData, knowledgeData] = await Promise.all([
-						listOrganizationIntegrations(agentData.organizationId).catch(() => [] as Integration[]),
-						listKnowledge({ organizationId: agentData.organizationId, take: 50 }).catch(() => [] as KnowledgeDocument[]),
-					]);
-					setIntegrations(integrationsData);
-					setKnowledge(knowledgeData);
-				} else {
-					setIntegrations([]);
-					setKnowledge([]);
-				}
-			} catch (err) {
-				if (err instanceof ApiError && err.statusCode === 404) {
-					setNotFound(true);
-				} else if (err instanceof ApiError) {
-					setError(err.message);
-				} else {
-					setError("Could not load this employee. Please try again.");
-				}
-			} finally {
-				setLoading(false);
-			}
-		})();
-	}, [id]);
-
-	const retry = () => {
-		setLoading(true);
-		setError(null);
-		load();
 	};
 
 	const handleDetachSkill = async (skillId: string) => {
@@ -368,7 +355,7 @@ export default function AgentDetailPage() {
 
 			{/* Custom Tabs Navigation */}
 			<div className="flex items-center gap-2 border-b border-border/40">
-				{(["prompts", "skills", "integrations", "knowledge"] as TabType[]).map((tab) => (
+				{(["prompts", "skills", "integrations"] as TabType[]).map((tab) => (
 					<button
 						key={tab}
 						onClick={() => setActiveTab(tab)}
@@ -547,49 +534,6 @@ export default function AgentDetailPage() {
 										</div>
 										<h4 className="font-semibold text-foreground capitalize">{app.name}</h4>
 										<span className="text-xs text-muted-foreground mt-0.5">{app.provider}</span>
-									</Card>
-								))}
-							</div>
-						)}
-					</div>
-				)}
-
-				{/* Knowledge Tab */}
-				{activeTab === "knowledge" && (
-					<div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-						<div className="flex items-center justify-between mb-6">
-							<div className="flex items-center gap-2">
-								<LibraryIcon className="w-5 h-5 text-indigo-500" />
-								<h3 className="font-semibold text-lg">Knowledge Bases</h3>
-							</div>
-						</div>
-						{knowledge.length === 0 ? (
-							<div className="border-2 border-dashed border-border/60 rounded-2xl bg-muted/20 p-10 flex flex-col items-center justify-center text-center">
-								<h3 className="font-semibold text-foreground">No knowledge bases yet</h3>
-								<p className="text-sm text-muted-foreground mt-1 max-w-sm">Upload documents to the knowledge base to give this employee context.</p>
-							</div>
-						) : (
-							<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-								{knowledge.map((kb) => (
-									<Card key={kb.id} className="group relative overflow-hidden border-border/50 bg-card/40 hover:bg-card hover:shadow-md transition-all duration-300 flex flex-col p-6 min-h-[140px]">
-										<div className="flex items-start gap-4 mb-3">
-											<div className="w-12 h-12 rounded-xl bg-background border border-border flex items-center justify-center shadow-sm p-2 shrink-0">
-												<img src="/3d-icons/3dicons-folder-dynamic-color.png" alt="Knowledge Base" className="w-full h-full object-contain" />
-											</div>
-											<div className="min-w-0">
-												<h4 className="font-semibold text-foreground text-lg mt-1 truncate">{kb.title}</h4>
-												<div className="flex gap-2 text-xs text-muted-foreground mt-1">
-													<Badge variant="secondary" className="px-1.5 py-0 text-[10px] font-medium">{kb.contentType}</Badge>
-												</div>
-											</div>
-										</div>
-										<p className="text-sm text-muted-foreground leading-relaxed flex-1 line-clamp-2">
-											{kb.content || (kb.source ? `Source: ${kb.source}` : "No content.")}
-										</p>
-										<div className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground">
-											<FileTextIcon className="w-3.5 h-3.5" />
-											<span>Added {new Date(kb.createdAt).toLocaleDateString()}</span>
-										</div>
 									</Card>
 								))}
 							</div>

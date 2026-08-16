@@ -92,12 +92,10 @@
   "notifications": "Notifications",
   "members": "Members",
   "integrations": "Integrations",
-  "knowledge": "Knowledge",
   "channels": "Channels",
   "notificationsDesc": "Configure how and when you receive notifications.",
   "membersDesc": "Manage team members and their roles.",
   "integrationsDesc": "Connect third-party apps and services.",
-  "knowledgeDesc": "Manage documents, FAQs, and knowledge bases.",
   "channelsDesc": "Configure communication channels for your employees.",
   "backToDashboard": "Back to Dashboard"
 }

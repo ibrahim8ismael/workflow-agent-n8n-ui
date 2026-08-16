@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { LayoutGridIcon, UsersIcon, GitMergeIcon, FileTextIcon, PlugIcon, MessageSquareIcon, SettingsIcon, HelpCircleIcon, ActivityIcon } from "lucide-react";
+import { LayoutGridIcon, UsersIcon, PlugIcon, SettingsIcon, HelpCircleIcon, ActivityIcon } from "lucide-react";
 
 export type SidebarNavItem = {
 	title: string;
@@ -35,11 +35,6 @@ export const navGroups: SidebarNavGroup[] = [
 				icon: <PlugIcon />,
 			},
 			{
-				title: "Knowledge",
-				path: "/knowledge",
-				icon: <FileTextIcon />,
-			},
-			{
 				title: "Settings",
 				path: "/settings",
 				icon: <SettingsIcon />,
@@ -51,7 +46,7 @@ export const navGroups: SidebarNavGroup[] = [
 export const footerNavLinks: SidebarNavItem[] = [
 	{
 		title: "Seller help",
-		path: "#/seller-help",
+		path: "/settings",
 		icon: (
 			<HelpCircleIcon
 			/>
@@ -59,7 +54,7 @@ export const footerNavLinks: SidebarNavItem[] = [
 	},
 	{
 		title: "Platform status",
-		path: "#/status",
+		path: "/settings",
 		icon: (
 			<ActivityIcon
 			/>

@@ -6,8 +6,6 @@
   "aiEmployees": "AI Employees",
   "agents": "Agents",
   "createEmployee": "Create Employee",
-  "knowledgeBase": "Knowledge Base",
-  "knowledge": "Knowledge",
   "integrations": "Integrations",
   "management": "Management",
   "settings": "Settings",
@@ -19,5 +17,7 @@
   "docs": "Docs",
   "logout": "Log out",
   "credits": "Credits",
-  "activeWorkers": "Active Workers"
+  "activeWorkers": "Active Workers",
+  "chatHistory": "Chat History",
+  "workspaceOwner": "Workspace owner"
 }

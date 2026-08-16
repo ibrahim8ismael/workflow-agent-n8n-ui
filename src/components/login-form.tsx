@@ -89,11 +89,11 @@ export function LoginForm({
       </form>
       <FieldDescription className="px-2 text-center leading-relaxed">
         By continuing, you agree to our{" "}
-        <a className="font-medium text-foreground underline underline-offset-4 hover:text-primary" href="#">
+        <a className="font-medium text-foreground underline underline-offset-4 hover:text-primary" href="/legal/terms">
           Terms of Service
         </a>{" "}
         and{" "}
-        <a className="font-medium text-foreground underline underline-offset-4 hover:text-primary" href="#">
+        <a className="font-medium text-foreground underline underline-offset-4 hover:text-primary" href="/legal/privacy">
           Privacy Policy
         </a>.
       </FieldDescription>

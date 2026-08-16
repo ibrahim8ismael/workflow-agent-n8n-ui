@@ -2,8 +2,9 @@
 
 import { useId, useMemo, useState } from "react";
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
-import { formatChartAxisTick, formatChartTooltipDate } from "@/lib/formater";
+import { formatChartAxisTick, formatChartTooltipDate } from "@/lib/formatter";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 import {
 	Card,
 	CardContent,
@@ -181,7 +182,7 @@ export function RevenueChart() {
 						{t("vsFirstDayInLast", { defaultValue: `vs first day in last ${periodDays} days.`, periodDays })}
 					</p>
 				</div>
-				<Button className="text-muted-foreground" size="xs" variant="ghost" render={<a href="#/reports" />} nativeButton={false}>{t("viewReport", { defaultValue: "View report" })}
+				<Button className="text-muted-foreground" size="xs" variant="ghost" render={<Link href="/settings" />} nativeButton={false}>{t("viewReport", { defaultValue: "View report" })}
                 						<ArrowRightIcon aria-hidden="true" data-icon="inline-end" /></Button>
 			</CardFooter>
 		</Card>
