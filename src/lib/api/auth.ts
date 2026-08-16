@@ -48,9 +48,30 @@ export async function logout(): Promise<void> {
   return api.post<void>("/auth/logout");
 }
 
+/** POST /auth/logout-all — revoke all sessions across all devices. 204. */
+export async function logoutAll(): Promise<void> {
+  return api.post<void>("/auth/logout-all");
+}
+
+export interface SwitchOrgResponse {
+  accessToken: string;
+}
+
+/** POST /auth/switch-organization — switch active organization context. */
+export async function switchOrganization(
+  organizationId: string,
+): Promise<SwitchOrgResponse> {
+  return api.post<SwitchOrgResponse>(
+    "/auth/switch-organization",
+    { organizationId },
+    { envelope: true },
+  );
+}
+
 /** GET /users/me — current user profile (JWT). */
 export async function fetchMe(): Promise<User> {
   return api.get<User>("/users/me");
 }
 
 export type { AuthUser };
+

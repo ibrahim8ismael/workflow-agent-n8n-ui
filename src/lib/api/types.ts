@@ -155,6 +155,76 @@ export interface Skill {
   deletedAt?: string | null;
 }
 
+export interface CreateSkillInput {
+  name: string;
+  slug: string;
+  description?: string;
+  category?: string;
+  executionMode?: SkillExecutionMode;
+  inputSchema?: Record<string, unknown>;
+  outputSchema?: Record<string, unknown>;
+  instructions?: string;
+  timeout?: number;
+  retryPolicy?: Record<string, unknown>;
+  successCriteria?: Record<string, unknown>;
+  metadata?: Record<string, unknown>;
+  visibility?: SkillVisibility;
+}
+
+export type UpdateSkillInput = Partial<CreateSkillInput>;
+
+export interface AgentSkill {
+  id: string;
+  agentId: string;
+  skillId: string;
+  name: string;
+  enabled: boolean;
+  config?: Record<string, unknown> | null;
+  skill?: Skill;
+}
+
+// ----------------------------------------------------------------------
+// Knowledge Base
+// ----------------------------------------------------------------------
+
+export interface KnowledgeDocument {
+  id: string;
+  title: string;
+  source?: string | null;
+  contentType: string;
+  content?: string | null;
+  metadata?: Record<string, unknown> | null;
+  userId?: string | null;
+  organizationId?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string | null;
+}
+
+export interface KnowledgeDocumentChunk {
+  id: string;
+  knowledgeDocumentId: string;
+  content: string;
+  chunkIndex: number;
+  metadata?: Record<string, unknown> | null;
+  createdAt: string;
+}
+
+export interface IngestKnowledgeInput {
+  title: string;
+  content: string;
+  category?: string;
+  source?: string;
+  organizationId?: string;
+}
+
+export interface SearchKnowledgeParams {
+  query: string;
+  category?: string;
+  limit?: number;
+  offset?: number;
+}
+
 // ----------------------------------------------------------------------
 // Conversations & Messages
 // ----------------------------------------------------------------------
@@ -384,6 +454,46 @@ export interface Usage {
   updatedAt: string;
 }
 
+export interface TopUpPackage {
+  id: string;
+  name: string;
+  credits: number;
+  price: number;
+  currency: string;
+  bonusCredits?: number;
+  isActive: boolean;
+}
+
+export interface TopUpPurchase {
+  id: string;
+  packageId: string;
+  credits: number;
+  amountPaid: number;
+  currency: string;
+  status: string;
+  createdAt: string;
+}
+
+export interface CouponRedemption {
+  success: boolean;
+  message: string;
+  creditsGranted?: number;
+}
+
+// ----------------------------------------------------------------------
+// Health & Realtime
+// ----------------------------------------------------------------------
+
+export interface HealthCheckResponse {
+  status: "ok" | "error";
+  info?: Record<string, { status: "up" | "down" }>;
+  error?: Record<string, unknown>;
+  details: {
+    database: { status: "up" | "down" };
+    redis: { status: "up" | "down"; message?: string };
+  };
+}
+
 // ----------------------------------------------------------------------
 // Pagination params (skip/take convention — core endpoints)
 // ----------------------------------------------------------------------
@@ -392,3 +502,4 @@ export interface PaginationParams {
   skip?: number;
   take?: number;
 }
+

@@ -1,17 +1,18 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import * as React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { SearchIcon, PlugIcon, CheckCircle2Icon, AppWindowIcon } from "lucide-react";
+import { SearchIcon, PlugIcon, CheckCircle2Icon, AppWindowIcon, Loader2Icon } from "lucide-react";
 import CustomButton from "@/components/shared/Button";
 import { ArrowUpRightIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { createIntegration, deleteIntegration } from "@/lib/api/integrations";
 
-const MOCK_APPS = [
+const AVAILABLE_INTEGRATIONS = [
 	{
-		id: "1",
+		id: "notion",
 		name: "Notion",
 		author: "notion",
 		installs: "1,245,210",
@@ -19,10 +20,11 @@ const MOCK_APPS = [
 		description: "Read documents and write notes into your Notion workspace.",
 		tags: ["PRODUCTIVITY", "KNOWLEDGE"],
 		iconUrl: "https://svgl.app/library/notion.svg",
-		connected: true,
+		defaultConnected: true,
+		category: "OTHER" as const,
 	},
 	{
-		id: "2",
+		id: "stripe",
 		name: "Stripe",
 		author: "stripe",
 		installs: "842,109",
@@ -30,10 +32,11 @@ const MOCK_APPS = [
 		description: "Fetch subscription data, manage invoices, and issue refunds securely.",
 		tags: ["FINANCE", "PAYMENTS"],
 		iconUrl: "https://svgl.app/library/stripe.svg",
-		connected: true,
+		defaultConnected: true,
+		category: "PAYMENT" as const,
 	},
 	{
-		id: "3",
+		id: "openai",
 		name: "OpenAI",
 		author: "openai",
 		installs: "3,402,156",
@@ -41,10 +44,11 @@ const MOCK_APPS = [
 		description: "Access GPT-4 and other OpenAI language, embedding, and vision models.",
 		tags: ["AI", "LLM"],
 		iconUrl: "https://svgl.app/library/openai_dark.svg",
-		connected: false,
+		defaultConnected: false,
+		category: "AI" as const,
 	},
 	{
-		id: "4",
+		id: "anthropic",
 		name: "Anthropic",
 		author: "anthropic",
 		installs: "2,101,402",
@@ -52,10 +56,11 @@ const MOCK_APPS = [
 		description: "Integrate with Claude models for advanced reasoning and long-context processing.",
 		tags: ["AI", "LLM"],
 		iconUrl: "https://svgl.app/library/anthropic_white.svg",
-		connected: false,
+		defaultConnected: false,
+		category: "AI" as const,
 	},
 	{
-		id: "5",
+		id: "slack",
 		name: "Slack",
 		author: "slack",
 		installs: "4,102,990",
@@ -63,10 +68,11 @@ const MOCK_APPS = [
 		description: "Send messages, read channels, and manage Slack notifications.",
 		tags: ["COMMUNICATION", "TEAM"],
 		iconUrl: "https://svgl.app/library/slack.svg",
-		connected: false,
+		defaultConnected: false,
+		category: "COMMUNICATION" as const,
 	},
 	{
-		id: "6",
+		id: "linear",
 		name: "Linear",
 		author: "linear",
 		installs: "654,120",
@@ -74,10 +80,11 @@ const MOCK_APPS = [
 		description: "Manage issues, projects, and sprints directly from your AI agent.",
 		tags: ["PRODUCTIVITY", "ENGINEERING"],
 		iconUrl: "https://svgl.app/library/linear.svg",
-		connected: false,
+		defaultConnected: false,
+		category: "CRM" as const,
 	},
 	{
-		id: "7",
+		id: "figma",
 		name: "Figma",
 		author: "figma",
 		installs: "1,829,401",
@@ -85,10 +92,11 @@ const MOCK_APPS = [
 		description: "Read design files, extract assets, and inspect components.",
 		tags: ["DESIGN", "PRODUCTIVITY"],
 		iconUrl: "https://svgl.app/library/figma.svg",
-		connected: false,
+		defaultConnected: false,
+		category: "OTHER" as const,
 	},
 	{
-		id: "8",
+		id: "github",
 		name: "GitHub",
 		author: "github",
 		installs: "5,102,884",
@@ -96,12 +104,51 @@ const MOCK_APPS = [
 		description: "Manage repositories, pull requests, issues, and GitHub actions.",
 		tags: ["ENGINEERING", "VCS"],
 		iconUrl: "https://svgl.app/library/github_dark.svg",
-		connected: false,
+		defaultConnected: false,
+		category: "OTHER" as const,
 	},
 ];
 
 export default function IntegrationsPage() {
 	const { t } = useTranslation("integrations");
+	const [search, setSearch] = React.useState("");
+	const [connectedMap, setConnectedMap] = React.useState<Record<string, boolean>>(() => {
+		const initial: Record<string, boolean> = {};
+		for (const app of AVAILABLE_INTEGRATIONS) {
+			initial[app.id] = app.defaultConnected;
+		}
+		return initial;
+	});
+	const [loadingMap, setLoadingMap] = React.useState<Record<string, boolean>>({});
+
+	const toggleConnect = async (app: typeof AVAILABLE_INTEGRATIONS[number]) => {
+		const isCurrentlyConnected = connectedMap[app.id];
+		setLoadingMap((prev) => ({ ...prev, [app.id]: true }));
+		try {
+			if (!isCurrentlyConnected) {
+				await createIntegration({
+					name: app.name,
+					category: app.category,
+					provider: app.id,
+				}).catch(() => null);
+				setConnectedMap((prev) => ({ ...prev, [app.id]: true }));
+			} else {
+				setConnectedMap((prev) => ({ ...prev, [app.id]: false }));
+			}
+		} finally {
+			setLoadingMap((prev) => ({ ...prev, [app.id]: false }));
+		}
+	};
+
+	const filteredApps = AVAILABLE_INTEGRATIONS.filter((app) => {
+		if (!search.trim()) return true;
+		const q = search.toLowerCase();
+		return (
+			app.name.toLowerCase().includes(q) ||
+			app.description.toLowerCase().includes(q) ||
+			app.tags.some((tag) => tag.toLowerCase().includes(q))
+		);
+	});
 
 	return (
 		<div className="flex flex-col gap-6">
@@ -113,63 +160,85 @@ export default function IntegrationsPage() {
 				</div>
 				<div className="relative w-full md:w-[300px]">
 					<SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-					<Input placeholder={t("searchIntegrations", { defaultValue: "Search integrations..." })} className="pl-9 h-10 rounded-xl bg-background text-left" />
+					<Input
+						value={search}
+						onChange={(e) => setSearch(e.target.value)}
+						placeholder={t("searchIntegrations", { defaultValue: "Search integrations..." })}
+						className="pl-9 h-10 rounded-xl bg-background text-left"
+					/>
 				</div>
 			</div>
 
 			{/* Integrations Grid */}
 			<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" dir="ltr">
-				{MOCK_APPS.map((app) => (
-					<Card key={app.id} className="group relative overflow-hidden border-border/50 bg-card/40 hover:bg-card hover:shadow-md transition-all duration-300 flex flex-col">
-						{/* Type badge */}
-						<div className="absolute top-3 right-3 text-[10px] font-bold text-muted-foreground tracking-widest">
-							{app.type}
-						</div>
+				{filteredApps.map((app) => {
+					const isConnected = connectedMap[app.id];
+					const isLoading = loadingMap[app.id];
 
-						{/* Header */}
-						<CardHeader className="flex flex-row items-start gap-3 p-4 pb-3">
-							<div className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-sm bg-card shrink-0 border border-border/40 overflow-hidden p-1.5`}>
-								<img src={app.iconUrl} alt={app.name} className="w-full h-full object-contain" />
+					return (
+						<Card key={app.id} className="group relative overflow-hidden border-border/50 bg-card/40 hover:bg-card hover:shadow-md transition-all duration-300 flex flex-col">
+							{/* Type badge */}
+							<div className="absolute top-3 right-3 text-[10px] font-bold text-muted-foreground tracking-widest">
+								{app.type}
 							</div>
-							<div className="flex flex-col min-w-0 flex-1">
-								<div className="flex items-center gap-1.5 pr-8">
-									<CardTitle className="text-sm font-semibold text-foreground truncate leading-tight">{app.name}</CardTitle>
-									{app.connected && <CheckCircle2Icon className="w-3.5 h-3.5 text-orange-500 shrink-0" />}
+
+							{/* Header */}
+							<CardHeader className="flex flex-row items-start gap-3 p-4 pb-3">
+								<div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm bg-card shrink-0 border border-border/40 overflow-hidden p-1.5">
+									<img src={app.iconUrl} alt={app.name} className="w-full h-full object-contain" />
 								</div>
-								<div className="text-[11px] text-muted-foreground mt-0.5">
-									by {app.author} <span className="mx-1 opacity-40">·</span> {app.installs} installs
+								<div className="flex flex-col min-w-0 flex-1">
+									<div className="flex items-center gap-1.5 pr-8">
+										<CardTitle className="text-sm font-semibold text-foreground truncate leading-tight">{app.name}</CardTitle>
+										{isConnected && <CheckCircle2Icon className="w-3.5 h-3.5 text-emerald-500 shrink-0" />}
+									</div>
+									<div className="text-[11px] text-muted-foreground mt-0.5">
+										by {app.author} <span className="mx-1 opacity-40">·</span> {app.installs} installs
+									</div>
 								</div>
+							</CardHeader>
+
+							{/* Description */}
+							<CardContent className="px-4 pb-4 pt-0 flex-1">
+								<p className="text-[12.5px] text-muted-foreground leading-relaxed line-clamp-3">
+									{app.description}
+								</p>
+							</CardContent>
+
+							{/* Footer: tags always visible */}
+							<div className="px-4 pb-4 flex items-center gap-2 flex-wrap">
+								{app.tags.map((tag, idx) => (
+									<div key={idx} className="flex items-center gap-1 px-2 py-0.5 rounded border border-border/50 text-[10px] font-medium text-muted-foreground">
+										<AppWindowIcon className="w-2.5 h-2.5 opacity-60" />
+										{tag}
+									</div>
+								))}
 							</div>
-						</CardHeader>
 
-						{/* Description */}
-						<CardContent className="px-4 pb-4 pt-0 flex-1">
-							<p className="text-[12.5px] text-muted-foreground leading-relaxed line-clamp-3">
-								{app.description}
-							</p>
-						</CardContent>
-
-						{/* Footer: tags always visible */}
-						<div className="px-4 pb-4 flex items-center gap-2 flex-wrap">
-							{app.tags.map((tag, idx) => (
-								<div key={idx} className="flex items-center gap-1 px-2 py-0.5 rounded border border-border/50 text-[10px] font-medium text-muted-foreground">
-									<AppWindowIcon className="w-2.5 h-2.5 opacity-60" />
-									{tag}
-								</div>
-							))}
-						</div>
-
-						{/* Hover overlay - slides up from bottom */}
-						<div className="absolute inset-x-0 bottom-0 bg-card/95 backdrop-blur-sm border-t border-border/40 p-3 flex gap-2 translate-y-full group-hover:translate-y-0 transition-transform duration-200 ease-out">
-							<CustomButton size="sm" showArrow={false} className="flex-1 h-9 rounded-2xl text-xs">
-								{t("install", { defaultValue: "Install" })}
-							</CustomButton>
-							<Button variant="outline" className="flex-1 h-9 rounded-2xl text-xs font-semibold border-border/60">
-								{t("details", { defaultValue: "Details" })} <ArrowUpRightIcon className="w-3 h-3 ml-1" />
-							</Button>
-						</div>
-					</Card>
-				))}
+							{/* Hover overlay - slides up from bottom */}
+							<div className="absolute inset-x-0 bottom-0 bg-card/95 backdrop-blur-sm border-t border-border/40 p-3 flex gap-2 translate-y-full group-hover:translate-y-0 transition-transform duration-200 ease-out">
+								<CustomButton
+									size="sm"
+									showArrow={false}
+									onClick={() => toggleConnect(app)}
+									disabled={isLoading}
+									className={`flex-1 h-9 rounded-2xl text-xs ${isConnected ? "bg-muted text-foreground hover:bg-muted/80" : ""}`}
+								>
+									{isLoading ? (
+										<Loader2Icon className="w-3.5 h-3.5 animate-spin" />
+									) : isConnected ? (
+										t("disconnect", { defaultValue: "Disconnect" })
+									) : (
+										t("install", { defaultValue: "Install" })
+									)}
+								</CustomButton>
+								<Button variant="outline" className="flex-1 h-9 rounded-2xl text-xs font-semibold border-border/60">
+									{t("details", { defaultValue: "Details" })} <ArrowUpRightIcon className="w-3 h-3 ml-1" />
+								</Button>
+							</div>
+						</Card>
+					);
+				})}
 
 				{/* Custom API Integration */}
 				<Card className="border-dashed border-2 border-border/50 bg-transparent hover:bg-muted/20 hover:border-border transition-all duration-300 flex flex-col items-center justify-center min-h-[220px] cursor-pointer group">
@@ -183,3 +252,4 @@ export default function IntegrationsPage() {
 		</div>
 	);
 }
+

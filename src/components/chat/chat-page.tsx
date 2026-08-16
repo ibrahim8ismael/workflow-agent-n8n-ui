@@ -7,7 +7,7 @@ import { Thread } from "@/components/assistant-ui/thread";
 import { ChatContext, type EffortLevel } from "@/lib/chat-context";
 import { getJaafarAgent } from "@/lib/api/agents";
 import { createConversation, getConversation, listConversationMessages } from "@/lib/api/conversations";
-import { confirmEmployeeDesign, createRun } from "@/lib/api/runs";
+import { confirmEmployeeDesign, createRun, streamRun } from "@/lib/api/runs";
 import { useAuthStore } from "@/stores/auth-store";
 import type { Conversation, Message } from "@/lib/api/types";
 import { Button } from "@/components/ui/button";
@@ -91,7 +91,6 @@ export function ChatPage({ conversationId: initialConversationId }: { conversati
 		async *run({ messages: threadMessages, abortSignal }) {
 			const lastMessage = threadMessages[threadMessages.length - 1];
 			const prompt = lastMessage?.content[0]?.type === "text" ? lastMessage.content[0].text : "";
-			let responseText = "";
 			let createdConversationId: string | null = null;
 			try {
 				let activeAgentId = agentIdRef.current;
@@ -113,17 +112,46 @@ export function ChatPage({ conversationId: initialConversationId }: { conversati
 					conversationIdRef.current = activeConversationId;
 					setConversation(createdConversation);
 				}
-				const result = await createRun({
-					agentId: activeAgentId,
-					conversationId: activeConversationId,
-					userMessage: prompt,
-					mode: "conversation",
-					effort: effortRef.current === "Low" ? "low" : effortRef.current === "Max Effort" ? "high" : "medium",
-				});
-				if (abortSignal.aborted) return;
-				responseText = result.response;
-				setPendingApproval(getPendingApproval(result));
-				yield { content: [{ type: "text", text: responseText }] };
+				const effort = effortRef.current === "Low" ? "low" : effortRef.current === "Max Effort" ? "high" : "medium";
+
+				let streamedTokens = "";
+				let receivedAnyToken = false;
+				try {
+					for await (const event of streamRun({
+						agentId: activeAgentId,
+						conversationId: activeConversationId,
+						userMessage: prompt,
+						mode: "conversation",
+						effort,
+					}, { signal: abortSignal })) {
+						if (abortSignal.aborted) return;
+						if (event.type === "token") {
+							const chunk = event.content ?? event.payload?.content ?? "";
+							streamedTokens += chunk;
+							receivedAnyToken = true;
+							yield { content: [{ type: "text", text: streamedTokens }] };
+						} else if (event.type === "run.completed") {
+							const finalResponse = event.response ?? event.payload?.response ?? streamedTokens;
+							if (finalResponse) {
+								yield { content: [{ type: "text", text: finalResponse }] };
+							}
+						}
+					}
+				} catch {
+					// If streaming encountered an issue or is unsupported, fallback to createRun
+					if (!receivedAnyToken) {
+						const result = await createRun({
+							agentId: activeAgentId,
+							conversationId: activeConversationId,
+							userMessage: prompt,
+							mode: "conversation",
+							effort,
+						});
+						if (abortSignal.aborted) return;
+						setPendingApproval(getPendingApproval(result));
+						yield { content: [{ type: "text", text: result.response }] };
+					}
+				}
 			} catch (err) {
 				yield { content: [{ type: "text", text: err instanceof Error ? err.message : "Could not send this message." }] };
 			}

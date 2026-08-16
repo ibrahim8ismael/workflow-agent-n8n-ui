@@ -30,16 +30,32 @@ export interface ConfirmEmployeeDesignInput {
 }
 
 export type RunStreamEvent =
-  | { type: "run.started"; runId: string; mode: RuntimeMode; conversationId?: string }
-  | { type: "token"; runId: string; content: string }
+  | { type: "run.started"; runId: string; mode?: RuntimeMode; conversationId?: string; payload?: { status: string } }
+  | { type: "token"; runId: string; content?: string; payload?: { content: string } }
+  | { type: "graph.node.started"; runId: string; payload?: { node: string } }
+  | { type: "graph.node.completed"; runId: string; payload?: { node: string; durationMs: number } }
+  | { type: "plan.created"; runId: string; payload?: { stepCount: number; requiresApproval: boolean } }
+  | { type: "tool.started"; runId: string; payload?: { callId: string; toolName: string } }
+  | { type: "tool.completed"; runId: string; payload?: { callId: string; toolName: string; durationMs: number } }
+  | { type: "tool.failed"; runId: string; payload?: { callId: string; toolName: string; error: unknown } }
+  | { type: "approval.required"; runId: string; payload?: { reason: string } }
+  | { type: "run.waiting"; runId: string; payload?: { reason: "clarification" | "approval" } }
   | {
       type: "run.completed";
       runId: string;
       conversationId?: string;
-      response: string;
-      usage: NonNullable<RunResponse["usage"]>;
+      response?: string;
+      usage?: NonNullable<RunResponse["usage"]>;
+      payload?: { response: string; usage: NonNullable<RunResponse["usage"]> };
     }
-  | { type: "run.failed"; runId: string; code: string; message: string };
+  | {
+      type: "run.failed";
+      runId: string;
+      code?: string;
+      message?: string;
+      payload?: { error: { code: string; message: string; retryable?: boolean } };
+    }
+  | { type: "run.cancelled"; runId: string; payload?: { reason?: string } };
 
 export interface StreamRunOptions {
   signal?: AbortSignal;
@@ -98,9 +114,29 @@ export async function createRun(input: CreateRunInput): Promise<RunResponse> {
   return api.post<RunResponse>("/runs", input);
 }
 
+export async function getRun(id: string): Promise<RunResponse> {
+  return api.get<RunResponse>(`/runs/${id}`);
+}
+
+export async function approveRun(
+  id: string,
+): Promise<{ runId: string; status: string }> {
+  return api.post<{ runId: string; status: string }>(`/runs/${id}/approve`);
+}
+
+export async function rejectRun(
+  id: string,
+  reason?: string,
+): Promise<{ runId: string; status: string }> {
+  return api.post<{ runId: string; status: string }>(`/runs/${id}/reject`, {
+    reason,
+  });
+}
+
 export async function confirmEmployeeDesign(
   runId: string,
   input: ConfirmEmployeeDesignInput,
 ): Promise<RunResponse> {
   return api.post<RunResponse>(`/runs/${runId}/confirm`, input);
 }
+

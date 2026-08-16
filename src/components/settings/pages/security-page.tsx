@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import {
   SettingsSection,
 } from "@/components/settings/settings-primitives";
-import { getMySessions, revokeSession, logoutAll } from "@/lib/api/users";
+import { getMySessions, revokeSession } from "@/lib/api/users";
+import { logoutAll } from "@/lib/api/auth";
 import { ApiError } from "@/lib/api/client";
 import {
   LaptopIcon,
@@ -21,7 +22,7 @@ import { useTranslation } from "react-i18next";
 
 type Session = Awaited<ReturnType<typeof getMySessions>>[number];
 
-function sessionIcon(device: string | null) {
+function sessionIcon(device?: string | null) {
   if (!device) return <GlobeIcon className="size-4" />;
   const d = device.toLowerCase();
   if (d.includes("mobile") || d.includes("iphone") || d.includes("android"))

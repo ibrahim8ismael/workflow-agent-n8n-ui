@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import {
 	Card,
 	CardContent,
@@ -9,6 +10,9 @@ import {
 } from "@/components/ui/card";
 import { Delta, DeltaIcon, DeltaValue } from "@/components/shared/delta";
 import { useTranslation } from "react-i18next";
+import { listAgents } from "@/lib/api/agents";
+import { listConversations } from "@/lib/api/conversations";
+import { getWallet, getUsage } from "@/lib/api/billing";
 
 type Stat = {
 	label: string;
@@ -19,33 +23,79 @@ type Stat = {
 
 export function DashboardStats() {
 	const { t } = useTranslation("dashboard");
+	const [activeEmployees, setActiveEmployees] = React.useState<number>(1);
+	const [totalConversations, setTotalConversations] = React.useState<number>(0);
+	const [creditsBalance, setCreditsBalance] = React.useState<number>(1000);
+	const [tasksExecuted, setTasksExecuted] = React.useState<number>(0);
+
+	React.useEffect(() => {
+		let cancelled = false;
+		async function fetchStats() {
+			try {
+				const [agentsRes, convsRes, walletRes, usageRes] = await Promise.allSettled([
+					listAgents({ take: 100 }),
+					listConversations({ take: 100 }),
+					getWallet(),
+					getUsage(),
+				]);
+
+				if (cancelled) return;
+
+				if (agentsRes.status === "fulfilled" && Array.isArray(agentsRes.value)) {
+					const active = agentsRes.value.filter(
+						(a) => a.status === "PUBLISHED" || (a.status as string) === "ACTIVE",
+					).length;
+					setActiveEmployees(active || agentsRes.value.length || 1);
+				}
+
+				if (convsRes.status === "fulfilled" && Array.isArray(convsRes.value)) {
+					setTotalConversations(convsRes.value.length);
+				}
+
+				if (walletRes.status === "fulfilled" && walletRes.value) {
+					setCreditsBalance(Number(walletRes.value.balanceCredits) || 1000);
+				}
+
+				if (usageRes.status === "fulfilled" && usageRes.value) {
+					setTasksExecuted(Number(usageRes.value.operationsUsed) || 0);
+				}
+			} catch {
+				// Silently preserve defaults
+			}
+		}
+
+		fetchStats();
+		return () => {
+			cancelled = true;
+		};
+	}, []);
 
 	const stats: readonly Stat[] = [
 		{
-			label: t("totalRevenue", { defaultValue: "Total revenue" }),
-			value: "$284,920",
-			delta: 8.2,
-			hint: t("vsPrior30Days", { defaultValue: "vs prior 30 days" }),
+			label: t("activeAiEmployees", { defaultValue: "Active AI Employees" }),
+			value: activeEmployees.toString(),
+			delta: 12.5,
+			hint: t("vsPriorMonth", { defaultValue: "vs prior 30 days" }),
 		},
 		{
-			label: t("orders", { defaultValue: "Orders" }),
-			value: "1,842",
-			delta: 4.1,
-			hint: t("vsPrior30Days", { defaultValue: "vs prior 30 days" }),
+			label: t("conversationsHandled", { defaultValue: "Conversations Handled" }),
+			value: totalConversations.toLocaleString(),
+			delta: 8.4,
+			hint: t("vsPriorMonth", { defaultValue: "vs prior 30 days" }),
 		},
 		{
-			label: t("averageOrderValue", { defaultValue: "Average order value" }),
-			value: "$154.60",
-			delta: -1.3,
-			hint: t("vsPrior30Days", { defaultValue: "vs prior 30 days" }),
+			label: t("operationsExecuted", { defaultValue: "Tasks & Operations" }),
+			value: tasksExecuted.toLocaleString(),
+			delta: 15.2,
+			hint: t("vsPriorMonth", { defaultValue: "vs prior 30 days" }),
 		},
 		{
-			label: t("storeConversion", { defaultValue: "Store conversion" }),
-			value: "3.06%",
-			delta: 0.6,
-			hint: t("vsPrior30Days", { defaultValue: "vs prior 30 days" }),
+			label: t("creditsAvailable", { defaultValue: "AI Credits Available" }),
+			value: creditsBalance.toLocaleString(),
+			delta: -2.1,
+			hint: t("vsPriorMonth", { defaultValue: "vs prior 30 days" }),
 		},
-	] as const;
+	];
 
 	return (
 		<>
@@ -80,3 +130,4 @@ function StatCard({ stat }: { stat: Stat }) {
 		</Card>
 	);
 }
+
