@@ -45,20 +45,14 @@ export const navGroups: SidebarNavGroup[] = [
 
 export const footerNavLinks: SidebarNavItem[] = [
 	{
-		title: "Seller help",
+		title: "Help & Docs",
 		path: "/settings",
-		icon: (
-			<HelpCircleIcon
-			/>
-		),
+		icon: <HelpCircleIcon />,
 	},
 	{
-		title: "Platform status",
+		title: "Platform Status",
 		path: "/settings",
-		icon: (
-			<ActivityIcon
-			/>
-		),
+		icon: <ActivityIcon />,
 	},
 ];
 

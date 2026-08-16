@@ -25,7 +25,23 @@ export async function createIntegration(
   return api.post<Integration>("/integrations", input);
 }
 
+/** GET /integrations/:id */
+export async function getIntegration(id: string): Promise<Integration> {
+  return api.get<Integration>(`/integrations/${id}`);
+}
+
+/** GET /integrations/:organizationId/check/:provider — check connection. */
+export async function checkIntegrationConnected(
+  organizationId: string,
+  provider: string,
+): Promise<{ connected: boolean }> {
+  return api.get<{ connected: boolean }>(
+    `/integrations/${organizationId}/check/${provider}`,
+  );
+}
+
 /** DELETE /integrations/:id — soft delete. */
 export async function deleteIntegration(id: string): Promise<void> {
   return api.delete<void>(`/integrations/${id}`);
 }
+

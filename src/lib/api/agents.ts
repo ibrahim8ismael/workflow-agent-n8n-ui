@@ -31,7 +31,19 @@ export async function getAgent(id: string): Promise<Agent> {
 
 /** GET /agents/platform/jaafar — the shared employee-design guide. */
 export async function getJaafarAgent(): Promise<Agent> {
-  return api.get<Agent>("/agents/platform/jaafar");
+  try {
+    return await api.get<Agent>("/agents/platform/jaafar");
+  } catch {
+    return {
+      id: "00000000-0000-4000-8000-000000000001",
+      name: "Jaafar",
+      description: "The Woops AI guide who designs digital employees with business owners.",
+      instructions: "You are Jaafar, the AI guide inside Woops. Help business owners design digital employees. Never claim an employee was created without backend confirmation.",
+      status: "PUBLISHED",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+  }
 }
 
 /** POST /agents */

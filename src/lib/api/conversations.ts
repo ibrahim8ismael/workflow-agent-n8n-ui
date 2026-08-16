@@ -35,9 +35,35 @@ export async function listConversationMessages(
   );
 }
 
+export async function addMessageToConversation(
+  conversationId: string,
+  message: { role: string; content: string; metadata?: Record<string, unknown> },
+): Promise<Message> {
+  return api.post<Message>(`/conversations/${conversationId}/messages`, message);
+}
+
 export async function updateConversationTitle(
   conversationId: string,
   title: string,
 ): Promise<Conversation> {
   return api.patch<Conversation>(`/conversations/${conversationId}`, { title });
 }
+
+export async function resolveConversation(
+  conversationId: string,
+): Promise<Conversation> {
+  return api.post<Conversation>(`/conversations/${conversationId}/resolve`);
+}
+
+export async function archiveConversation(
+  conversationId: string,
+): Promise<Conversation> {
+  return api.post<Conversation>(`/conversations/${conversationId}/archive`);
+}
+
+export async function deleteConversation(
+  conversationId: string,
+): Promise<Conversation> {
+  return api.delete<Conversation>(`/conversations/${conversationId}`);
+}
+

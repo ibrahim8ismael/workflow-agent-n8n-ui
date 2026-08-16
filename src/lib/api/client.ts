@@ -144,11 +144,11 @@ async function streamRequest(
 }
 
 export function buildQuery(
-  params?: Record<string, string | number | boolean | undefined | null>,
+  params?: Record<string, string | number | boolean | undefined | null> | object,
 ): string {
   if (!params) return "";
   const search = new URLSearchParams();
-  for (const [key, value] of Object.entries(params)) {
+  for (const [key, value] of Object.entries(params as Record<string, unknown>)) {
     if (value === undefined || value === null || value === "") continue;
     search.set(key, String(value));
   }

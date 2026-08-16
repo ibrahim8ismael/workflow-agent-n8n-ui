@@ -10,13 +10,16 @@ import { LanguageSwitcher } from "@/components/layout/language-switcher";
 import { BellIcon, ZapIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
+import { useSettings } from "@/components/settings/settings-provider";
+
 export function AppHeader() {
 	const { t } = useTranslation("common");
+	const { openSettings } = useSettings();
 
 	return (
 		<header className={cn("px-4 mb-6 flex items-center justify-between gap-2 md:px-2")}>
 			<div className="flex items-center gap-3">
-				{/* Header left area empty or reserved for future content */}
+				{/* Header left area */}
 			</div>
 
 			<div className="flex items-center gap-3">
@@ -27,7 +30,12 @@ export function AppHeader() {
 				{/* Credits radial */}
 				<CreditsRadial />
 
-				<CustomButton size="sm" showArrow={false} className="hidden sm:inline-flex py-1.5 px-4 text-xs gap-1">
+				<CustomButton
+					size="sm"
+					showArrow={false}
+					onClick={() => openSettings("billing")}
+					className="hidden sm:inline-flex py-1.5 px-4 text-xs gap-1 cursor-pointer"
+				>
 					<ZapIcon className="w-3 h-3" />
 					{t("upgrade")}
 				</CustomButton>
