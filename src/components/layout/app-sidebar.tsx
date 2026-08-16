@@ -19,26 +19,41 @@ import { PlusIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { listConversations } from "@/lib/api/conversations";
+import { listConversationMessages, listConversations } from "@/lib/api/conversations";
 import type { Conversation } from "@/lib/api/types";
 import { SidebarGroupLabel } from "@/components/ui/sidebar";
+import { useTranslation } from "react-i18next";
 
 function ChatHistory() {
 	const pathname = usePathname();
 	const [conversations, setConversations] = useState<Conversation[]>([]);
+	const { t } = useTranslation("sidebar");
 
 	useEffect(() => {
 		let cancelled = false;
-		// Include legacy chats created before conversation ownership was sent by the client.
 		listConversations({ status: "ACTIVE", take: 50 })
-			.then((items) => { if (!cancelled) setConversations(items); })
+			.then(async (items) => {
+				const titled = items.filter((c) => c.title !== "New chat");
+				const untitled = items.filter((c) => c.title === "New chat").slice(0, 5);
+				const toCheck = [...titled, ...untitled];
+				const visibleItems = await Promise.all(toCheck.map(async (conversation) => {
+					if (conversation.title !== "New chat") return conversation;
+					try {
+						const messages = await listConversationMessages(conversation.id, { take: 1 });
+						return messages.length > 0 ? conversation : null;
+					} catch {
+						return null;
+					}
+				}));
+				if (!cancelled) setConversations(visibleItems.filter((conversation): conversation is Conversation => conversation !== null));
+			})
 			.catch(() => { if (!cancelled) setConversations([]); });
 		return () => { cancelled = true; };
 	}, [pathname]);
 
 	return (
 		<SidebarGroup className="mt-12 flex-1 overflow-hidden group-data-[collapsible=icon]:hidden">
-			<SidebarGroupLabel>Chat History</SidebarGroupLabel>
+			<SidebarGroupLabel>{t("chatHistory")}</SidebarGroupLabel>
 			<SidebarMenu className="flex-1 overflow-y-auto">
 				{conversations.map((conversation) => (
 					<SidebarMenuItem key={conversation.id}>
@@ -53,7 +68,6 @@ function ChatHistory() {
 }
 
 import { NavUser } from "@/components/layout/nav-user";
-import { useTranslation } from "react-i18next";
 import { useLanguage } from "@/components/providers/language-provider";
 
 export function AppSidebar() {
@@ -63,10 +77,10 @@ export function AppSidebar() {
 	return (
 		<Sidebar collapsible="icon" variant="floating" side={isRTL ? "right" : "left"}>
 			<SidebarHeader className="h-16 flex flex-row items-center justify-between px-4 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
-				<a href="#link" className="flex justify-start items-center overflow-hidden group-data-[collapsible=icon]:hidden">
+				<Link href="/" className="flex justify-start items-center overflow-hidden group-data-[collapsible=icon]:hidden">
 					<LogoIcon className="w-6 h-6 object-contain shrink-0 transition-all" />
 					<span className="font-bold text-xl tracking-tight ms-2">woops</span>
-				</a>
+				</Link>
 				<CustomSidebarTrigger />
 			</SidebarHeader>
 			<SidebarContent className="overflow-hidden">

@@ -183,6 +183,3 @@ export default function IntegrationsPage() {
 		</div>
 	);
 }
-
-// Add missing icon
-import { Settings2Icon } from "lucide-react";

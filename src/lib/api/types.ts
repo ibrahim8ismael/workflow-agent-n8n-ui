@@ -107,7 +107,7 @@ export interface Agent {
   description?: string | null;
   instructions?: string | null;
   personality?: string | null;
-  model: string;
+  model?: string | null;
   status: AgentStatus;
   userId?: string | null;
   organizationId?: string | null;
@@ -186,35 +186,6 @@ export interface Message {
   role: string;
   content: string;
   metadata?: Record<string, unknown> | null;
-  createdAt: string;
-  updatedAt: string;
-  deletedAt?: string | null;
-}
-
-// ----------------------------------------------------------------------
-// Knowledge
-// ----------------------------------------------------------------------
-
-export interface KnowledgeDocument {
-  id: string;
-  title: string;
-  source?: string | null;
-  contentType: string;
-  content?: string | null;
-  metadata?: Record<string, unknown> | null;
-  userId?: string | null;
-  organizationId?: string | null;
-  createdAt: string;
-  updatedAt: string;
-  deletedAt?: string | null;
-}
-
-export interface KnowledgeChunk {
-  id: string;
-  knowledgeDocumentId: string;
-  content: string;
-  metadata?: Record<string, unknown> | null;
-  chunkIndex: number;
   createdAt: string;
   updatedAt: string;
   deletedAt?: string | null;

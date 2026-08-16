@@ -29,6 +29,11 @@ export async function getAgent(id: string): Promise<Agent> {
   return api.get<Agent>(`/agents/${id}`);
 }
 
+/** GET /agents/platform/jaafar — the shared employee-design guide. */
+export async function getJaafarAgent(): Promise<Agent> {
+  return api.get<Agent>("/agents/platform/jaafar");
+}
+
 /** POST /agents */
 export async function createAgent(input: CreateAgentInput): Promise<Agent> {
   return api.post<Agent>("/agents", input);

@@ -24,6 +24,11 @@ export interface RunResponse {
   };
 }
 
+export interface ConfirmEmployeeDesignInput {
+  confirm: true;
+  blueprintRevision: string;
+}
+
 export type RunStreamEvent =
   | { type: "run.started"; runId: string; mode: RuntimeMode; conversationId?: string }
   | { type: "token"; runId: string; content: string }
@@ -91,4 +96,11 @@ function parseStreamFrame(frame: string): RunStreamEvent | null {
 
 export async function createRun(input: CreateRunInput): Promise<RunResponse> {
   return api.post<RunResponse>("/runs", input);
+}
+
+export async function confirmEmployeeDesign(
+  runId: string,
+  input: ConfirmEmployeeDesignInput,
+): Promise<RunResponse> {
+  return api.post<RunResponse>(`/runs/${runId}/confirm`, input);
 }

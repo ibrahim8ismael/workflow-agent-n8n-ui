@@ -29,7 +29,6 @@ const PAGE_COMPONENTS: Record<SettingsPageId, React.ComponentType> = {
   notifications: GeneralPage,
   members: GeneralPage,
   integrations: GeneralPage,
-  knowledge: GeneralPage,
   channels: GeneralPage,
 };
 

@@ -218,7 +218,6 @@ const ThreadSuggestionItem: FC = () => {
 
 const Composer: FC = () => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const backdropRef = useRef<HTMLDivElement>(null);
   const [activeQuery, setActiveQuery] = useState<{ query: string; startIndex: number; endIndex: number; type: 'mention' | 'slash' } | null>(null);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [composerValue, setComposerValue] = useState("");
@@ -232,13 +231,6 @@ const Composer: FC = () => {
   );
 
   const activeOptions = (activeQuery?.type === 'mention' ? filteredMentions : filteredActions).slice(0, 5);
-
-  const handleScroll = useCallback((e: React.UIEvent<HTMLTextAreaElement>) => {
-    if (backdropRef.current) {
-      backdropRef.current.scrollTop = e.currentTarget.scrollTop;
-      backdropRef.current.scrollLeft = e.currentTarget.scrollLeft;
-    }
-  }, []);
 
   const updateMentionState = useCallback(() => {
     if (!textareaRef.current) return;
@@ -300,51 +292,11 @@ const Composer: FC = () => {
     }, 0);
   }, [activeQuery]);
 
-  const renderFormattedText = (text: string) => {
-    if (!text) return null;
-    
-    const mentionLabels = MENTION_OPTIONS.map(o => `@${o.label}`);
-    const actionLabels = SLASH_ACTIONS.map(o => `/${o.label}`);
-    const allLabels = [...mentionLabels, ...actionLabels].sort((a, b) => b.length - a.length);
-    
-    if (allLabels.length === 0) return <span className="whitespace-pre-wrap break-words">{text}</span>;
-    
-    const escapedLabels = allLabels.map(label => label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-    const regex = new RegExp(`(${escapedLabels.join('|')})`, 'g');
-    
-    const parts = text.split(regex);
-    
-    return parts.map((part, index) => {
-      const isMention = mentionLabels.includes(part);
-      const isAction = actionLabels.includes(part);
-      
-      if (isMention) {
-        return <span key={index} className="bg-primary/20 ring-[3px] ring-primary/20 text-primary rounded-sm font-medium">{part}</span>;
-      }
-      if (isAction) {
-        return <span key={index} className="bg-orange-500/20 ring-[3px] ring-orange-500/20 text-orange-600 dark:text-orange-400 rounded-sm font-medium">{part}</span>;
-      }
-      return <span key={index} className="text-foreground">{part}</span>;
-    });
-  };
-
   return (
     <ComposerPrimitive.Root className="aui-composer-root relative flex w-full flex-col mb-4 md:mb-8">
       <ComposerPrimitive.AttachmentDropzone render={<div data-slot="aui_composer-shell" className="border-border/60 data-[dragging=true]:border-ring focus-within:border-border dark:border-muted-foreground/15 dark:focus-within:border-muted-foreground/30 flex w-full flex-col gap-2 rounded-(--composer-radius) border bg-(--composer-bg) p-(--composer-padding) shadow-[0_4px_16px_-8px_rgba(0,0,0,0.08),0_1px_2px_rgba(0,0,0,0.04)] transition-[border-color,box-shadow] focus-within:shadow-[0_6px_24px_-8px_rgba(0,0,0,0.12),0_1px_2px_rgba(0,0,0,0.05)] data-[dragging=true]:border-dashed data-[dragging=true]:bg-[color-mix(in_oklab,var(--color-accent)_50%,var(--color-background))] dark:shadow-none" />}>
         <ComposerAttachments />
         <div className="relative w-full">
-          {/* Backdrop div for highlighting text */}
-          <div 
-            ref={backdropRef}
-            aria-hidden="true" 
-            dir="auto"
-            className="aui-mixed-script absolute inset-0 z-0 pointer-events-none w-full h-full max-h-32 min-h-10 px-2.5 py-1 text-base overflow-y-auto whitespace-pre-wrap break-words"
-            style={{ color: "transparent" }}
-          >
-             {renderFormattedText(composerValue)}
-             {composerValue.endsWith('\n') ? <br /> : null}
-          </div>
-
           {activeQuery && activeOptions.length > 0 && (
             <div 
               className="absolute left-2 bottom-[calc(100%+8px)] z-50 w-56 rounded-xl border border-border bg-card/95 p-1 shadow-xl backdrop-blur-md flex flex-col animate-in fade-in slide-in-from-bottom-2"
@@ -382,11 +334,11 @@ const Composer: FC = () => {
           )}
           <ComposerPrimitive.Input
             ref={textareaRef}
+            dir="auto"
             onChange={(e) => {
               setComposerValue(e.target.value);
               updateMentionState();
             }}
-            onScroll={handleScroll}
             onKeyUp={(e) => {
               if (["ArrowLeft", "ArrowRight", "Backspace", "Delete"].includes(e.key)) {
                 updateMentionState();
@@ -422,11 +374,7 @@ const Composer: FC = () => {
               }
             }}
             placeholder="Send a message..."
-            className={cn(
-              "aui-composer-input aui-mixed-script relative z-10 caret-primary max-h-32 min-h-10 w-full resize-none bg-transparent px-2.5 py-1 text-base outline-none",
-              composerValue.length > 0 ? "text-transparent" : "text-foreground placeholder:text-muted-foreground/80"
-            )}
-            style={{ color: composerValue.length > 0 ? 'transparent' : undefined }}
+            className="aui-composer-input aui-mixed-script relative z-10 caret-primary max-h-32 min-h-10 w-full resize-none bg-transparent px-2.5 py-1 text-base text-foreground placeholder:text-muted-foreground/80 outline-none"
             rows={1}
             autoFocus
             enterKeyHint="send"

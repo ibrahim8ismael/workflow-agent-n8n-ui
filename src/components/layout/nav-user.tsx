@@ -92,7 +92,7 @@ export function NavUser() {
 								<div className="truncate font-semibold text-foreground">{name}</div>
 								<div className="truncate text-xs text-muted-foreground">{email}</div>
 								<div className="mt-0.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground/80">
-									Workspace owner
+									{t("workspaceOwner")}
 								</div>
 							</div>
 						</div>

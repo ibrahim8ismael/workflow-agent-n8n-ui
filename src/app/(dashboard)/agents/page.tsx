@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { Card } from "@/components/ui/card";
@@ -114,21 +114,6 @@ export default function AgentsPage() {
 
 	const [busyId, setBusyId] = useState<string | null>(null);
 
-	const load = useCallback(async () => {
-		try {
-			setAgents(await listAgents());
-			setError(null);
-		} catch (err) {
-			if (err instanceof ApiError) {
-				setError(err.message);
-			} else {
-				setError(t("loadError", { defaultValue: "Could not load your workforce. Please try again." }));
-			}
-		} finally {
-			setLoading(false);
-		}
-	}, []);
-
 	useEffect(() => {
 		const controller = new AbortController();
 		(async () => {
@@ -148,10 +133,21 @@ export default function AgentsPage() {
 		return () => controller.abort();
 	}, []);
 
-	const retry = () => {
+	const retry = async () => {
 		setLoading(true);
 		setError(null);
-		load();
+		try {
+			setAgents(await listAgents());
+			setError(null);
+		} catch (err) {
+			if (err instanceof ApiError) {
+				setError(err.message);
+			} else {
+				setError(t("loadError", { defaultValue: "Could not load your workforce. Please try again." }));
+			}
+		} finally {
+			setLoading(false);
+		}
 	};
 
 	const handleCreate = async (e: React.FormEvent<HTMLFormElement>) => {
