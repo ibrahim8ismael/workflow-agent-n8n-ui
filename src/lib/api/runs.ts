@@ -140,3 +140,13 @@ export async function confirmEmployeeDesign(
   return api.post<RunResponse>(`/runs/${runId}/confirm`, input);
 }
 
+export async function cancelRun(
+  id: string,
+  reason?: string,
+): Promise<{ runId: string; status: string }> {
+  return api.post<{ runId: string; status: string }>(`/runs/${id}/cancel`, {
+    reason,
+  });
+}
+
+

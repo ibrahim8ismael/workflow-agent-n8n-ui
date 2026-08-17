@@ -12,4 +12,5 @@ export * from "./channels";
 export * from "./integrations";
 export * from "./billing";
 export * from "./health";
+export * from "./admin";
 

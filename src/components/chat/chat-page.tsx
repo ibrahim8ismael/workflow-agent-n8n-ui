@@ -14,21 +14,85 @@ import { Button } from "@/components/ui/button";
 
 type PendingApproval = {
 	runId: string;
-	blueprintRevision: string;
+	blueprintRevision?: string;
 	name: string;
 	summary: string;
+	status?: string;
 };
 
-function getPendingApproval(run: { runId: string; plan?: unknown }): PendingApproval | null {
-	if (!run.plan || typeof run.plan !== "object") return null;
-	const plan = run.plan as Record<string, unknown>;
-	if (plan.ready !== true || typeof plan.blueprintRevision !== "string") return null;
-	if (typeof plan.name !== "string" || typeof plan.summary !== "string") return null;
+function getPendingApprovalFromPlan(runId: string, plan: unknown): PendingApproval | null {
+	if (!plan || typeof plan !== "object") return null;
+	const p = plan as Record<string, unknown>;
+	const name = typeof p.name === "string" ? p.name : "New Employee";
+	const summary = typeof p.summary === "string" ? p.summary : typeof p.description === "string" ? p.description : "";
+	const blueprintRevision = typeof p.blueprintRevision === "string" ? p.blueprintRevision : undefined;
+	const isReady = p.ready === true || p.status === "READY_FOR_REVIEW" || p.approvalStatus === "READY";
+
+	if (isReady && runId) {
+		return {
+			runId,
+			blueprintRevision,
+			name,
+			summary: summary || "Ready for approval and creation in your workspace.",
+			status: "READY_FOR_REVIEW",
+		};
+	}
+	return null;
+}
+
+function getPendingApprovalFromConversation(conv: Conversation | null, defaultRunId?: string): PendingApproval | null {
+	if (!conv || !conv.metadata || typeof conv.metadata !== "object") return null;
+	const meta = conv.metadata as Record<string, unknown>;
+	const design = meta.employeeDesign as Record<string, unknown> | undefined;
+	if (!design || typeof design !== "object") return null;
+
+	const status = design.status as string | undefined;
+	const approvalStatus = design.approvalStatus as string | undefined;
+	if (status !== "READY_FOR_REVIEW" && approvalStatus !== "READY" && !design.blueprint) return null;
+
+	const bp = (design.blueprint as Record<string, unknown> | undefined) ?? {};
+	const runId = (design.sourceDesignRunId as string | undefined) ?? (design.runId as string | undefined) ?? defaultRunId ?? conv.id;
+
+	const name = typeof bp.name === "string" ? bp.name : "New Employee";
+	const summary = typeof bp.summary === "string" ? bp.summary : typeof bp.description === "string" ? bp.description : "";
+	const blueprintRevision = typeof design.blueprintRevision === "string" ? design.blueprintRevision : typeof bp.blueprintRevision === "string" ? bp.blueprintRevision : undefined;
+
 	return {
-		runId: run.runId,
-		blueprintRevision: plan.blueprintRevision,
-		name: plan.name,
-		summary: plan.summary,
+		runId,
+		blueprintRevision,
+		name,
+		summary: summary || "Ready for approval and creation in your workspace.",
+		status: "READY_FOR_REVIEW",
+	};
+}
+
+function getPendingApprovalFromMessages(messages: Message[], fallbackRunId?: string): PendingApproval | null {
+	if (!messages || messages.length === 0) return null;
+	// Look at the latest assistant messages for blueprint keywords
+	const recentAssistant = [...messages].reverse().find((m) => m.role === "assistant" && (
+		m.content.includes("blueprint is complete") ||
+		m.content.includes("The blueprint is complete") ||
+		m.content.includes("blueprint is ready") ||
+		m.content.includes("Start Process") ||
+		(m.content.includes("Role:") && m.content.includes("Skill:"))
+	));
+
+	if (!recentAssistant) return null;
+	const text = recentAssistant.content;
+
+	// Extract employee name (e.g. **SupportBot** or SupportBot)
+	const nameMatch = text.match(/\*\*([A-Za-z0-9_\-\s]+)\*\*\s*(?:—|-|\n)/) || text.match(/blueprint(?:\s+is\s+complete)?[:\s]+(?:\*\*)?([A-Za-z0-9_\-]+)/i) || text.match(/(?:employee|name)[:\s]+\*\*?([A-Za-z0-9_\-]+)\*?/i);
+	const name = nameMatch ? nameMatch[1].trim() : "SupportBot";
+
+	// Extract summary or role
+	const roleMatch = text.match(/(?:Role|Primary focus|Focus)[:\s]+\*?([^\n\*\-]+)/i);
+	const role = roleMatch ? roleMatch[1].trim() : "Customer Support Specialist";
+
+	return {
+		runId: fallbackRunId || recentAssistant.id,
+		name,
+		summary: `${name} — ${role}`,
+		status: "READY_FOR_REVIEW",
 	};
 }
 
@@ -50,6 +114,7 @@ export function ChatPage({ conversationId: initialConversationId }: { conversati
 	const [error, setError] = useState<string | null>(null);
 	const [pendingApproval, setPendingApproval] = useState<PendingApproval | null>(null);
 	const [isConfirming, setIsConfirming] = useState(false);
+	const [createdSuccess, setCreatedSuccess] = useState<string | null>(null);
 	const conversationIdRef = useRef(initialConversationId ?? null);
 
 	useEffect(() => {
@@ -69,6 +134,10 @@ export function ChatPage({ conversationId: initialConversationId }: { conversati
 					setConversation(loadedConversation);
 					setAgentId(loadedConversation.agentId);
 					setMessages(loadedMessages);
+					const pending =
+						getPendingApprovalFromConversation(loadedConversation) ||
+						getPendingApprovalFromMessages(loadedMessages, loadedConversation.id);
+					if (pending) setPendingApproval(pending);
 				}
 			} catch (err) {
 				if (!cancelled) setError(err instanceof Error ? err.message : "Could not load this chat.");
@@ -86,6 +155,23 @@ export function ChatPage({ conversationId: initialConversationId }: { conversati
 	useEffect(() => {
 		agentIdRef.current = agentId;
 	}, [agentId]);
+
+	const checkConversationApproval = async (convId: string, lastRunId?: string) => {
+		try {
+			const [updatedConv, updatedMessages] = await Promise.all([
+				getConversation(convId),
+				listConversationMessages(convId, { take: 100 }),
+			]);
+			setConversation(updatedConv);
+			setMessages(updatedMessages);
+			const pending =
+				getPendingApprovalFromConversation(updatedConv, lastRunId) ||
+				getPendingApprovalFromMessages(updatedMessages, lastRunId || convId);
+			setPendingApproval(pending);
+		} catch {
+			// ignore polling error
+		}
+	};
 
 	const runtime = useLocalRuntime({
 		async *run({ messages: threadMessages, abortSignal }) {
@@ -116,6 +202,8 @@ export function ChatPage({ conversationId: initialConversationId }: { conversati
 
 				let streamedTokens = "";
 				let receivedAnyToken = false;
+				let lastRunId: string | null = null;
+
 				try {
 					for await (const event of streamRun({
 						agentId: activeAgentId,
@@ -125,6 +213,8 @@ export function ChatPage({ conversationId: initialConversationId }: { conversati
 						effort,
 					}, { signal: abortSignal })) {
 						if (abortSignal.aborted) return;
+						if (event.runId) lastRunId = event.runId;
+
 						if (event.type === "token") {
 							const chunk = event.content ?? event.payload?.content ?? "";
 							streamedTokens += chunk;
@@ -137,6 +227,10 @@ export function ChatPage({ conversationId: initialConversationId }: { conversati
 							}
 						}
 					}
+					// Check if conversation now has an approved/ready blueprint
+					if (activeConversationId) {
+						await checkConversationApproval(activeConversationId);
+					}
 				} catch {
 					// If streaming encountered an issue or is unsupported, fallback to createRun
 					if (!receivedAnyToken) {
@@ -148,7 +242,9 @@ export function ChatPage({ conversationId: initialConversationId }: { conversati
 							effort,
 						});
 						if (abortSignal.aborted) return;
-						setPendingApproval(getPendingApproval(result));
+						const pending = getPendingApprovalFromPlan(result.runId, result.plan);
+						if (pending) setPendingApproval(pending);
+						else if (activeConversationId) await checkConversationApproval(activeConversationId);
 						yield { content: [{ type: "text", text: result.response }] };
 					}
 				}
@@ -162,13 +258,21 @@ export function ChatPage({ conversationId: initialConversationId }: { conversati
 	const handleConfirm = async () => {
 		if (!pendingApproval) return;
 		setIsConfirming(true);
+		setError(null);
 		try {
 			const result = await confirmEmployeeDesign(pendingApproval.runId, {
 				confirm: true,
-				blueprintRevision: pendingApproval.blueprintRevision,
+				blueprintRevision: pendingApproval.blueprintRevision ?? "",
 			});
-			if (result.status === "COMPLETED") setPendingApproval(null);
-			else setError(result.response || "Could not create the employee draft.");
+			if (result.status === "COMPLETED") {
+				setPendingApproval(null);
+				setCreatedSuccess(`🎉 ${pendingApproval.name} has been created and configured successfully!`);
+				if (conversationIdRef.current) {
+					await checkConversationApproval(conversationIdRef.current);
+				}
+			} else {
+				setError(result.response || "Could not create the employee draft.");
+			}
 		} catch (err) {
 			setError(err instanceof Error ? err.message : "Could not confirm the employee draft.");
 		} finally {
@@ -181,21 +285,20 @@ export function ChatPage({ conversationId: initialConversationId }: { conversati
 
 	return (
 		<div className="flex h-full w-full flex-col overflow-hidden bg-background">
-			{pendingApproval && (
-				<div className="border-b bg-muted/30 px-4 py-3">
-					<div className="mx-auto flex max-w-(--thread-max-width) items-center justify-between gap-4">
-						<div className="min-w-0">
-							<p className="text-sm font-semibold">Review {pendingApproval.name}</p>
-							<p className="truncate text-sm text-muted-foreground">{pendingApproval.summary}</p>
-						</div>
-						<Button onClick={handleConfirm} disabled={isConfirming} size="sm">
-							{isConfirming ? "Creating..." : "Approve and create draft"}
-						</Button>
-					</div>
-				</div>
-			)}
-			<ChatContext.Provider value={{ effortLevel, setEffortLevel }}>
-				<AssistantRuntimeProvider runtime={runtime}><Thread /></AssistantRuntimeProvider>
+			<ChatContext.Provider
+				value={{
+					effortLevel,
+					setEffortLevel,
+					pendingApproval,
+					isConfirming,
+					onConfirmApproval: handleConfirm,
+					createdSuccess,
+					onDismissSuccess: () => setCreatedSuccess(null),
+				}}
+			>
+				<AssistantRuntimeProvider runtime={runtime}>
+					<Thread />
+				</AssistantRuntimeProvider>
 			</ChatContext.Provider>
 		</div>
 	);

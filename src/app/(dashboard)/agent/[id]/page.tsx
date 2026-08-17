@@ -45,6 +45,7 @@ import { archiveAgent, detachSkill, getAgent, listAgentSkills, updateAgent } fro
 import { listAgentMemory, createMemory, deleteMemory } from "@/lib/api/memory";
 import { listOrganizationIntegrations } from "@/lib/api/integrations";
 import type { Agent, AgentStatus, Integration, Memory, Skill } from "@/lib/api/types";
+import { WorkflowViewerDialog } from "@/components/dashboard/WorkflowViewerDialog";
 
 type TabType = "prompts" | "skills" | "integrations";
 
@@ -94,6 +95,7 @@ export default function AgentDetailPage() {
 	const [notFound, setNotFound] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [busySkillId, setBusySkillId] = useState<string | null>(null);
+	const [selectedSkillForViewer, setSelectedSkillForViewer] = useState<Skill | null>(null);
 	const [activeTab, setActiveTab] = useState<TabType>("prompts");
 
 	const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -478,7 +480,13 @@ export default function AgentDetailPage() {
 										</div>
 
 										<div className="absolute inset-x-0 bottom-0 bg-card/95 backdrop-blur-sm border-t border-border/40 p-4 flex gap-3 translate-y-full group-hover:translate-y-0 transition-transform duration-200 ease-out">
-											<CustomButton variant="primary" showArrow={false} className="flex-1 h-9 rounded-xl text-sm font-semibold" disabled={busySkillId === skill.id}>
+											<CustomButton
+												variant="primary"
+												showArrow={false}
+												className="flex-1 h-9 rounded-xl text-sm font-semibold"
+												disabled={busySkillId === skill.id}
+												onClick={() => setSelectedSkillForViewer(skill)}
+											>
 												<EyeIcon className="w-4 h-4 mr-2" /> View
 											</CustomButton>
 
@@ -626,6 +634,13 @@ export default function AgentDetailPage() {
 					</DialogFooter>
 				</DialogContent>
 			</Dialog>
+
+			{/* Visual Workflow Viewer Modal */}
+			<WorkflowViewerDialog
+				skill={selectedSkillForViewer}
+				open={Boolean(selectedSkillForViewer)}
+				onOpenChange={(open) => !open && setSelectedSkillForViewer(null)}
+			/>
 		</div>
 	);
 }

@@ -503,3 +503,195 @@ export interface PaginationParams {
   take?: number;
 }
 
+// ----------------------------------------------------------------------
+// System Administration (Module: AdminModule)
+// ----------------------------------------------------------------------
+
+export interface AdminDashboardStats {
+  totalUsers: number;
+  activeOrganizations: number;
+  totalRunsToday: number;
+  mrrUsd: number;
+  systemHealth: "HEALTHY" | "DEGRADED" | "CRITICAL" | string;
+}
+
+export interface AdminMrrData {
+  mrrUsd: number;
+  growthRate?: number;
+  history?: Array<{ date: string; mrr: number }>;
+  breakdownByPlan?: Record<string, number>;
+}
+
+export interface AdminChurnData {
+  churnRate: number;
+  churnedCount: number;
+  totalSubscribers: number;
+  period?: string;
+}
+
+export interface AdminCreditsBurnData {
+  days: number;
+  totalCreditsBurned: number;
+  dailyAverage: number;
+  history?: Array<{ date: string; credits: number }>;
+  breakdownByModel?: Record<string, number>;
+}
+
+export interface AdminArpuData {
+  arpuUsd: number;
+  arpuByPlan?: Record<string, number>;
+}
+
+export interface AdminUserListItem {
+  id: string;
+  email: string;
+  name?: string | null;
+  role: UserRole;
+  isEmailVerified: boolean;
+  isSuspended?: boolean;
+  suspensionReason?: string | null;
+  organizationCount?: number;
+  walletBalance?: string | number;
+  avatarUrl?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdminUserStats {
+  totalUsers: number;
+  activeUsers: number;
+  suspendedUsers: number;
+  adminUsers: number;
+  newUsersLast30Days?: number;
+}
+
+export interface AdminOrganizationListItem {
+  id: string;
+  name: string;
+  slug?: string;
+  ownerId?: string;
+  ownerEmail?: string;
+  memberCount?: number;
+  agentCount?: number;
+  isSuspended?: boolean;
+  suspensionReason?: string | null;
+  currentPlan?: string;
+  walletBalanceCredits?: string | number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdminOrganizationStats {
+  totalOrganizations: number;
+  activeOrganizations: number;
+  suspendedOrganizations: number;
+  enterpriseCount?: number;
+}
+
+export interface CreatePlanInput {
+  name: string;
+  description?: string;
+  price: number;
+  currency?: string;
+  interval?: "month" | "year" | string;
+  features?: Record<string, unknown>;
+  isActive?: boolean;
+}
+
+export type UpdatePlanInput = Partial<CreatePlanInput>;
+
+export interface AdminWalletTopUpInput {
+  credits: string | number;
+  description: string;
+}
+
+export interface AdminWalletDeductInput {
+  credits: string | number;
+  description: string;
+}
+
+export type CouponType =
+  | "FREE_CREDITS"
+  | "PERCENTAGE_DISCOUNT"
+  | "FIXED_DISCOUNT"
+  | string;
+
+export interface AdminCoupon {
+  id: string;
+  code: string;
+  type: CouponType;
+  value: number;
+  maxRedemptions?: number | null;
+  redemptionCount?: number;
+  expiresAt?: string | null;
+  isActive?: boolean;
+  createdAt: string;
+}
+
+export interface CreateCouponInput {
+  code: string;
+  type: CouponType;
+  value: number;
+  maxRedemptions?: number;
+  expiresAt?: string;
+}
+
+export interface FeatureFlagOverride {
+  id?: string;
+  entityType: "ORGANIZATION" | "USER";
+  entityId: string;
+  enabled: boolean;
+  reason?: string;
+  createdAt?: string;
+}
+
+export interface AdminFeatureFlag {
+  id?: string;
+  key: string;
+  name: string;
+  description?: string;
+  enabled: boolean;
+  overrides?: FeatureFlagOverride[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CreateFeatureFlagInput {
+  key: string;
+  name: string;
+  description?: string;
+  enabled?: boolean;
+}
+
+export interface SetFeatureFlagOverrideInput {
+  entityType: "ORGANIZATION" | "USER";
+  entityId: string;
+  enabled: boolean;
+  reason?: string;
+}
+
+export interface AdminAuditLog {
+  id: string;
+  userId?: string | null;
+  userEmail?: string | null;
+  action: string;
+  entityType?: string | null;
+  entityId?: string | null;
+  metadata?: Record<string, unknown> | null;
+  ipAddress?: string | null;
+  userAgent?: string | null;
+  createdAt: string;
+}
+
+export interface AdminImpersonationLog {
+  id: string;
+  adminId: string;
+  adminEmail?: string;
+  impersonatedUserId: string;
+  impersonatedUserEmail?: string;
+  reason: string;
+  ipAddress?: string;
+  createdAt: string;
+}
+
+

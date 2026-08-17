@@ -1,0 +1,274 @@
+{
+  "title": "Platform Administration",
+  "subtitle": "System health, user and organization management, subscription tiers, and governance.",
+  "backToWorkspace": "Back to Workspace",
+  "accessDenied": "Access Restricted",
+  "accessDeniedDesc": "You must have the SYSTEM_ADMINISTRATOR role to access the Admin Suite.",
+  "systemHealth": {
+    "title": "System Health",
+    "HEALTHY": "All Systems Operational",
+    "DEGRADED": "Degraded Performance",
+    "CRITICAL": "Critical Incident",
+    "unknown": "Status Unknown"
+  },
+  "nav": {
+    "dashboard": "Overview",
+    "analytics": "Platform Analytics",
+    "users": "User Accounts",
+    "organizations": "Organizations",
+    "plans": "Subscription Plans",
+    "wallets": "Wallets & Credits",
+    "coupons": "Coupons & Promos",
+    "featureFlags": "Feature Flags",
+    "auditLogs": "Audit Logs"
+  },
+  "analytics": {
+    "title": "Platform Analytics & Financial KPIs",
+    "mrr": "Monthly Recurring Revenue (MRR)",
+    "churn": "Monthly Churn Rate",
+    "arpu": "Average Revenue Per User (ARPU)",
+    "creditsBurn": "AI Credits Burn Rate",
+    "totalRuns": "Total Runs Today",
+    "totalUsers": "Registered Users",
+    "activeOrgs": "Active Organizations",
+    "burn30Days": "30-Day Burn",
+    "dailyAvg": "Daily Average",
+    "revenueByPlan": "Revenue by Plan",
+    "timeRange": "Time Range",
+    "last7Days": "Last 7 Days",
+    "last30Days": "Last 30 Days",
+    "last90Days": "Last 90 Days"
+  },
+  "users": {
+    "title": "User Administration",
+    "searchPlaceholder": "Search by name or email...",
+    "total": "Total Users",
+    "active": "Active",
+    "suspended": "Suspended",
+    "admins": "Administrators",
+    "new30d": "New (30 Days)",
+    "columns": {
+      "user": "User",
+      "role": "Role",
+      "status": "Status",
+      "organizations": "Orgs",
+      "createdAt": "Joined",
+      "actions": "Actions"
+    },
+    "roles": {
+      "USER": "User",
+      "SYSTEM_ADMINISTRATOR": "System Admin"
+    },
+    "statusActive": "Active",
+    "statusSuspended": "Suspended",
+    "statusUnverified": "Unverified",
+    "actions": {
+      "viewDetails": "View Details",
+      "suspend": "Suspend Account",
+      "reactivate": "Reactivate Account",
+      "impersonate": "Impersonate Session",
+      "adjustWallet": "Adjust Credits"
+    },
+    "suspendDialog": {
+      "title": "Suspend User Account",
+      "description": "The user will immediately be logged out and prevented from executing AI employees.",
+      "reasonLabel": "Suspension Reason",
+      "reasonPlaceholder": "e.g. Abuse of LLM tokens, chargeback dispute...",
+      "confirm": "Suspend Account",
+      "cancel": "Cancel"
+    },
+    "reactivateDialog": {
+      "title": "Reactivate User Account",
+      "description": "Restore full access for this user to log in and use the platform.",
+      "reasonLabel": "Reactivation Reason",
+      "reasonPlaceholder": "e.g. Account cleared by compliance team...",
+      "confirm": "Reactivate Account",
+      "cancel": "Cancel"
+    },
+    "impersonateDialog": {
+      "title": "Impersonate User Session",
+      "description": "You will generate a temporary session token to view and troubleshoot the platform as this user. All impersonated actions are logged in the audit trail.",
+      "reasonLabel": "Justification",
+      "reasonPlaceholder": "e.g. Troubleshooting billing sync issue...",
+      "confirm": "Start Impersonation",
+      "cancel": "Cancel"
+    }
+  },
+  "organizations": {
+    "title": "Organization Administration",
+    "searchPlaceholder": "Search by org name or slug...",
+    "total": "Total Organizations",
+    "active": "Active",
+    "suspended": "Suspended",
+    "enterprise": "Enterprise",
+    "columns": {
+      "organization": "Organization",
+      "owner": "Owner",
+      "members": "Members",
+      "agents": "AI Employees",
+      "plan": "Plan",
+      "status": "Status",
+      "createdAt": "Created",
+      "actions": "Actions"
+    },
+    "suspendDialog": {
+      "title": "Suspend Organization",
+      "description": "All members belonging to this organization will be paused from running AI agents.",
+      "reasonLabel": "Reason for Suspension",
+      "reasonPlaceholder": "e.g. Overdue payment grace period expired...",
+      "confirm": "Suspend Organization",
+      "cancel": "Cancel"
+    }
+  },
+  "plans": {
+    "title": "Subscription Plans Management",
+    "subtitle": "Configure pricing tiers, employee quotas, and feature allocations.",
+    "createNew": "Create New Plan",
+    "editPlan": "Edit Plan",
+    "columns": {
+      "name": "Plan Name",
+      "price": "Price",
+      "interval": "Billing Cycle",
+      "features": "Employee Quota & Features",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "form": {
+      "nameLabel": "Plan Name",
+      "namePlaceholder": "e.g. Enterprise Scale",
+      "descLabel": "Description",
+      "descPlaceholder": "e.g. Unlimited agents with high-concurrency execution",
+      "priceLabel": "Price (USD)",
+      "currencyLabel": "Currency",
+      "intervalLabel": "Interval",
+      "intervalMonth": "Monthly",
+      "intervalYear": "Yearly",
+      "maxEmployeesLabel": "Max AI Employees",
+      "prioritySupportLabel": "Priority Support",
+      "activeLabel": "Active for new subscribers",
+      "save": "Save Plan",
+      "create": "Create Plan",
+      "cancel": "Cancel"
+    }
+  },
+  "wallets": {
+    "title": "Wallets & Credit Grants",
+    "subtitle": "Grant courtesy credits, claw back disputed balances, and freeze suspicious wallets.",
+    "lookupPlaceholder": "Enter Wallet ID or Organization ID...",
+    "topUp": "Top-Up Credits",
+    "deduct": "Deduct Credits",
+    "freeze": "Freeze Wallet",
+    "unfreeze": "Unfreeze Wallet",
+    "topUpDialog": {
+      "title": "Manual Credit Top-Up",
+      "description": "Grant courtesy or promotional credits directly into this wallet.",
+      "creditsLabel": "Credits to Grant",
+      "descLabel": "Audit Note / Reason",
+      "descPlaceholder": "e.g. Courtesy goodwill credit adjustment by Support",
+      "confirm": "Grant Credits",
+      "cancel": "Cancel"
+    },
+    "deductDialog": {
+      "title": "Credit Deduction / Clawback",
+      "description": "Remove credits from this wallet.",
+      "creditsLabel": "Credits to Deduct",
+      "descLabel": "Audit Note / Reason",
+      "descPlaceholder": "e.g. Clawback for disputed charge",
+      "confirm": "Deduct Credits",
+      "cancel": "Cancel"
+    },
+    "freezeDialog": {
+      "title": "Freeze Wallet",
+      "description": "Freezing prevents this wallet from spending credits or executing AI agents.",
+      "confirm": "Freeze Wallet",
+      "cancel": "Cancel"
+    },
+    "unfreezeDialog": {
+      "title": "Unfreeze Wallet",
+      "description": "Unfreezing will restore immediate credit spend capabilities.",
+      "confirm": "Unfreeze Wallet",
+      "cancel": "Cancel"
+    }
+  },
+  "coupons": {
+    "title": "Coupon & Promo Management",
+    "createNew": "Create Coupon",
+    "columns": {
+      "code": "Promo Code",
+      "type": "Type",
+      "value": "Value",
+      "redemptions": "Redemptions",
+      "expiresAt": "Expires",
+      "status": "Status"
+    },
+    "types": {
+      "FREE_CREDITS": "Free Credits",
+      "PERCENTAGE_DISCOUNT": "Percentage Discount",
+      "FIXED_DISCOUNT": "Fixed Discount"
+    },
+    "form": {
+      "codeLabel": "Coupon Code",
+      "codePlaceholder": "e.g. SUMMER50",
+      "typeLabel": "Discount Type",
+      "valueLabel": "Value (Credits or %)",
+      "maxRedemptionsLabel": "Max Redemptions",
+      "expiresAtLabel": "Expiration Date",
+      "create": "Create Coupon",
+      "cancel": "Cancel"
+    }
+  },
+  "featureFlags": {
+    "title": "Feature Flags & Rollouts",
+    "subtitle": "Control feature availability globally or with targeted tenant overrides.",
+    "createNew": "Create Feature Flag",
+    "addOverride": "Add Override",
+    "columns": {
+      "flag": "Flag Key & Name",
+      "description": "Description",
+      "globalStatus": "Global Status",
+      "overrides": "Targeted Overrides",
+      "actions": "Actions"
+    },
+    "form": {
+      "keyLabel": "Flag Key",
+      "keyPlaceholder": "e.g. enable_gpt5_preview",
+      "nameLabel": "Display Name",
+      "namePlaceholder": "e.g. GPT-5 Preview Model",
+      "descLabel": "Description",
+      "descPlaceholder": "Enables GPT-5 model selection in agent configuration",
+      "enabledLabel": "Globally Enabled",
+      "create": "Create Flag",
+      "cancel": "Cancel"
+    },
+    "overrideDialog": {
+      "title": "Set Targeted Override",
+      "entityTypeLabel": "Entity Type",
+      "orgType": "Organization",
+      "userType": "User",
+      "entityIdLabel": "Entity ID",
+      "entityIdPlaceholder": "e.g. org_12345 or user_98765",
+      "enabledLabel": "Override State (Enabled)",
+      "reasonLabel": "Reason",
+      "reasonPlaceholder": "e.g. Early access pilot",
+      "confirm": "Apply Override",
+      "cancel": "Cancel"
+    }
+  },
+  "auditLogs": {
+    "title": "Audit & Compliance Logs",
+    "tabPlatform": "Platform Actions",
+    "tabImpersonation": "Impersonation Trail",
+    "filterAction": "Filter Action",
+    "filterUser": "Filter User ID",
+    "columns": {
+      "timestamp": "Timestamp",
+      "actor": "Actor",
+      "action": "Action",
+      "target": "Target Entity",
+      "ipAddress": "IP Address",
+      "details": "Details",
+      "reason": "Justification",
+      "impersonatedUser": "Impersonated User"
+    }
+  }
+}
