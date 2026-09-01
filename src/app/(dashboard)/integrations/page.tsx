@@ -34,6 +34,7 @@ import {
 	listOrganizationIntegrations,
 } from "@/lib/api/integrations";
 import type { Integration, IntegrationCategory } from "@/lib/api/types";
+import { N8nConnectionManager } from "@/components/integrations/n8n-connection-manager";
 
 interface AppDefinition {
 	id: string;
@@ -163,6 +164,7 @@ const AVAILABLE_INTEGRATIONS: AppDefinition[] = [
 type CategoryFilter = "ALL" | "CRM" | "COMMUNICATION" | "PAYMENT" | "AI" | "OTHER";
 
 export default function IntegrationsPage() {
+	const [tab, setTab] = React.useState<"apps" | "n8n">("apps");
 	const [search, setSearch] = React.useState("");
 	const [selectedCategory, setSelectedCategory] = React.useState<CategoryFilter>("ALL");
 	const [connectedMap, setConnectedMap] = React.useState<Record<string, boolean>>({
@@ -225,7 +227,26 @@ export default function IntegrationsPage() {
 				</div>
 			</div>
 
-			{/* Filter & Search Bar */}
+			<div className="flex items-center gap-2 p-1 rounded-full bg-muted/40 w-fit">
+				<button
+					onClick={() => setTab("apps")}
+					className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-colors ${tab === "apps" ? "bg-background shadow text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+				>
+					Apps Catalog
+				</button>
+				<button
+					onClick={() => setTab("n8n")}
+					className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-colors ${tab === "n8n" ? "bg-background shadow text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+				>
+					n8n Instances
+				</button>
+			</div>
+
+			{tab === "n8n" && <N8nConnectionManager />}
+
+			{tab === "apps" && (
+				<>
+					{/* Filter & Search Bar */}
 			<div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
 				{/* Category Pills */}
 				<div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
@@ -424,6 +445,8 @@ export default function IntegrationsPage() {
 						</DialogFooter>
 					</DialogContent>
 				</Dialog>
+			)}
+				</>
 			)}
 		</div>
 	);

@@ -27,6 +27,7 @@ export type IntegrationCategory =
   | "ANALYTICS"
   | "STORAGE"
   | "OTHER";
+/** @deprecated ADR-011 — Skills removed; kept for read compat until drop migration. */
 export type SkillExecutionMode =
   | "AI_ONLY"
   | "N8N_WORKFLOW"
@@ -34,6 +35,7 @@ export type SkillExecutionMode =
   | "MEMORY_RETRIEVAL"
   | "HYBRID"
   | "HUMAN_APPROVAL";
+/** @deprecated ADR-011 */
 export type SkillStatus =
   | "DRAFT"
   | "TESTING"
@@ -41,6 +43,7 @@ export type SkillStatus =
   | "ACTIVE"
   | "DEPRECATED"
   | "ARCHIVED";
+/** @deprecated ADR-011 */
 export type SkillVisibility = "PRIVATE" | "ORGANIZATION" | "PUBLIC";
 export type RunStatus =
   | "CREATED"
@@ -129,9 +132,80 @@ export interface CreateAgentInput {
 export type UpdateAgentInput = Partial<CreateAgentInput>;
 
 // ----------------------------------------------------------------------
-// Skills
+// Automations & N8n Connections (ADR-011 client-managed n8n)
 // ----------------------------------------------------------------------
 
+export type N8nConnectionStatus =
+  | "PENDING_VERIFICATION"
+  | "ACTIVE"
+  | "INVALID"
+  | "SUSPENDED";
+
+export interface N8nConnection {
+  id: string;
+  name: string;
+  baseUrl: string;
+  status: N8nConnectionStatus | string;
+  lastVerifiedAt: string | null;
+  lastError: string | null;
+  keyPreview: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type AutomationStatus =
+  | "DESIGN"
+  | "PENDING_APPROVAL"
+  | "PROVISIONING"
+  | "ACTIVE"
+  | "FAILED"
+  | "SUSPENDED";
+
+export interface AutomationBlueprint {
+  ready: boolean;
+  missingRequirements: string[];
+  name: string;
+  goal: string;
+  summary: string;
+  description?: string;
+  trigger: {
+    type: "webhook" | "schedule" | "manual" | "chat";
+    config?: Record<string, unknown>;
+  };
+  steps: Array<{
+    name: string;
+    action: string;
+    description?: string;
+    integration?: string;
+    config?: Record<string, unknown>;
+  }>;
+  integrations: string[];
+  inputContract?: Record<string, unknown>;
+  outputContract?: Record<string, unknown>;
+  riskNotes?: string[];
+}
+
+export interface Automation {
+  id: string;
+  name: string;
+  description: string | null;
+  blueprint: AutomationBlueprint | Record<string, unknown>;
+  status: AutomationStatus | string;
+  connectionId: string;
+  externalWorkflowId: string | null;
+  webhookPath: string | null;
+  lastSyncedAt: string | null;
+  blueprintRevision: string | null;
+  lastError: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ----------------------------------------------------------------------
+// Skills (deprecated)
+// ----------------------------------------------------------------------
+
+/** @deprecated ADR-011 — see Automation. */
 export interface Skill {
   id: string;
   name: string;
@@ -173,6 +247,7 @@ export interface CreateSkillInput {
 
 export type UpdateSkillInput = Partial<CreateSkillInput>;
 
+/** @deprecated ADR-011 */
 export interface AgentSkill {
   id: string;
   agentId: string;

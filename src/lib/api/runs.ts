@@ -1,6 +1,11 @@
 import { api } from "@/lib/api/client";
 
-export type RuntimeMode = "conversation" | "employee_design" | "execution";
+export type RuntimeMode =
+  | "conversation"
+  | "automation_design"
+  | "execution"
+  /** @deprecated — renamed to automation_design */
+  | "employee_design";
 
 export interface CreateRunInput {
   agentId: string;
@@ -24,10 +29,13 @@ export interface RunResponse {
   };
 }
 
-export interface ConfirmEmployeeDesignInput {
-  confirm: true;
-  blueprintRevision: string;
+export interface ConfirmAutomationDesignInput {
+  confirm?: boolean;
+  confirmed?: boolean;
+  blueprintRevision?: string;
 }
+/** @deprecated — use ConfirmAutomationDesignInput */
+export type ConfirmEmployeeDesignInput = ConfirmAutomationDesignInput;
 
 export type RunStreamEvent =
   | { type: "run.started"; runId: string; mode?: RuntimeMode; conversationId?: string; payload?: { status: string } }
@@ -133,12 +141,15 @@ export async function rejectRun(
   });
 }
 
-export async function confirmEmployeeDesign(
+export async function confirmAutomationDesign(
   runId: string,
-  input: ConfirmEmployeeDesignInput,
+  input: ConfirmAutomationDesignInput,
 ): Promise<RunResponse> {
   return api.post<RunResponse>(`/runs/${runId}/confirm`, input);
 }
+
+/** @deprecated — use confirmAutomationDesign */
+export const confirmEmployeeDesign = confirmAutomationDesign;
 
 export async function cancelRun(
   id: string,

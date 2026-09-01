@@ -6,6 +6,8 @@ export * from "./agents";
 export * from "./runs";
 export * from "./conversations";
 export * from "./skills";
+export * from "./automations";
+export * from "./n8n-connections";
 export * from "./knowledge";
 export * from "./memory";
 export * from "./channels";

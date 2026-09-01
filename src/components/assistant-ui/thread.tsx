@@ -188,12 +188,21 @@ const BlueprintApprovalDock: FC = () => {
             <SparklesIcon className="size-4.5 animate-pulse text-primary" />
           </div>
           <div className="min-w-0">
-            <div className="flex items-center gap-2">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-primary">Blueprint Ready</span>
-              <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">Ready to Build</span>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-primary">Automation Ready</span>
+              <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">Ready to provision</span>
+              {pendingApproval.triggerType && (
+                <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-mono text-primary border border-primary/20">{pendingApproval.triggerType}</span>
+              )}
+              {typeof pendingApproval.stepCount === "number" && (
+                <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">{pendingApproval.stepCount} steps</span>
+              )}
             </div>
             <h4 className="text-sm font-semibold text-foreground truncate mt-0.5">{pendingApproval.name}</h4>
             <p className="text-xs text-muted-foreground line-clamp-1">{pendingApproval.summary}</p>
+            {pendingApproval.blueprintRevision && (
+              <p className="text-[11px] font-mono text-muted-foreground/70 mt-0.5">rev {pendingApproval.blueprintRevision}</p>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
@@ -206,12 +215,12 @@ const BlueprintApprovalDock: FC = () => {
             {isConfirming ? (
               <>
                 <RefreshCwIcon className="size-3.5 animate-spin" />
-                <span>Creating Employee...</span>
+                <span>Provisioning…</span>
               </>
             ) : (
               <>
                 <CheckIcon className="size-3.5" />
-                <span>Start Process</span>
+                <span>Approve & Provision</span>
               </>
             )}
           </Button>

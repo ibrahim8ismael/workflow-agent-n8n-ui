@@ -10,6 +10,9 @@ export type PendingApproval = {
 	name: string;
 	summary: string;
 	status?: string;
+	goal?: string;
+	triggerType?: string;
+	stepCount?: number;
 };
 
 export const ChatContext = createContext<{

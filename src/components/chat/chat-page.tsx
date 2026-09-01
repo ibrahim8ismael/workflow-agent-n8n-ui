@@ -7,7 +7,7 @@ import { Thread } from "@/components/assistant-ui/thread";
 import { ChatContext, type EffortLevel } from "@/lib/chat-context";
 import { getJaafarAgent } from "@/lib/api/agents";
 import { createConversation, getConversation, listConversationMessages } from "@/lib/api/conversations";
-import { confirmEmployeeDesign, createRun, streamRun } from "@/lib/api/runs";
+import { confirmAutomationDesign, createRun, streamRun } from "@/lib/api/runs";
 import { useAuthStore } from "@/stores/auth-store";
 import type { Conversation, Message } from "@/lib/api/types";
 import { Button } from "@/components/ui/button";
@@ -18,23 +18,34 @@ type PendingApproval = {
 	name: string;
 	summary: string;
 	status?: string;
+	goal?: string;
+	triggerType?: string;
+	stepCount?: number;
 };
 
 function getPendingApprovalFromPlan(runId: string, plan: unknown): PendingApproval | null {
 	if (!plan || typeof plan !== "object") return null;
 	const p = plan as Record<string, unknown>;
-	const name = typeof p.name === "string" ? p.name : "New Employee";
-	const summary = typeof p.summary === "string" ? p.summary : typeof p.description === "string" ? p.description : "";
-	const blueprintRevision = typeof p.blueprintRevision === "string" ? p.blueprintRevision : undefined;
-	const isReady = p.ready === true || p.status === "READY_FOR_REVIEW" || p.approvalStatus === "READY";
+	// Blueprint-shaped plan (automation)
+	const bp = (p.blueprint as Record<string, unknown> | undefined) ?? p;
+	const name = typeof bp.name === "string" ? bp.name : typeof p.name === "string" ? p.name : "New Automation";
+	const summary = typeof bp.summary === "string" ? bp.summary : typeof bp.goal === "string" ? bp.goal : typeof p.summary === "string" ? p.summary : typeof p.description === "string" ? p.description : "";
+	const goal = typeof bp.goal === "string" ? bp.goal : undefined;
+	const blueprintRevision = typeof p.blueprintRevision === "string" ? p.blueprintRevision : typeof bp.blueprintRevision === "string" ? bp.blueprintRevision : undefined;
+	const triggerType = (bp.trigger as { type?: string } | undefined)?.type;
+	const stepCount = Array.isArray(bp.steps) ? bp.steps.length : undefined;
+	const isReady = p.ready === true || bp.ready === true || p.status === "READY_FOR_REVIEW" || p.approvalStatus === "READY" || bp.status === "READY_FOR_REVIEW";
 
 	if (isReady && runId) {
 		return {
 			runId,
 			blueprintRevision,
 			name,
-			summary: summary || "Ready for approval and creation in your workspace.",
+			summary: summary || goal || "Ready to provision in your n8n.",
 			status: "READY_FOR_REVIEW",
+			goal,
+			triggerType,
+			stepCount,
 		};
 	}
 	return null;
@@ -43,7 +54,8 @@ function getPendingApprovalFromPlan(runId: string, plan: unknown): PendingApprov
 function getPendingApprovalFromConversation(conv: Conversation | null, defaultRunId?: string): PendingApproval | null {
 	if (!conv || !conv.metadata || typeof conv.metadata !== "object") return null;
 	const meta = conv.metadata as Record<string, unknown>;
-	const design = meta.employeeDesign as Record<string, unknown> | undefined;
+	// Prefer automationDesign, fallback to employeeDesign for back-compat
+	const design = (meta.automationDesign as Record<string, unknown> | undefined) ?? (meta.employeeDesign as Record<string, unknown> | undefined);
 	if (!design || typeof design !== "object") return null;
 
 	const status = design.status as string | undefined;
@@ -53,45 +65,52 @@ function getPendingApprovalFromConversation(conv: Conversation | null, defaultRu
 	const bp = (design.blueprint as Record<string, unknown> | undefined) ?? {};
 	const runId = (design.sourceDesignRunId as string | undefined) ?? (design.runId as string | undefined) ?? defaultRunId ?? conv.id;
 
-	const name = typeof bp.name === "string" ? bp.name : "New Employee";
-	const summary = typeof bp.summary === "string" ? bp.summary : typeof bp.description === "string" ? bp.description : "";
+	const name = typeof bp.name === "string" ? bp.name : "New Automation";
+	const summary = typeof bp.summary === "string" ? bp.summary : typeof bp.goal === "string" ? bp.goal : typeof bp.description === "string" ? bp.description : "";
+	const goal = typeof bp.goal === "string" ? bp.goal : undefined;
+	const triggerType = (bp.trigger as { type?: string } | undefined)?.type;
+	const stepCount = Array.isArray(bp.steps) ? bp.steps.length : undefined;
 	const blueprintRevision = typeof design.blueprintRevision === "string" ? design.blueprintRevision : typeof bp.blueprintRevision === "string" ? bp.blueprintRevision : undefined;
 
 	return {
 		runId,
 		blueprintRevision,
 		name,
-		summary: summary || "Ready for approval and creation in your workspace.",
+		summary: summary || goal || "Ready to provision in your n8n.",
 		status: "READY_FOR_REVIEW",
+		goal,
+		triggerType,
+		stepCount,
 	};
 }
 
 function getPendingApprovalFromMessages(messages: Message[], fallbackRunId?: string): PendingApproval | null {
 	if (!messages || messages.length === 0) return null;
-	// Look at the latest assistant messages for blueprint keywords
 	const recentAssistant = [...messages].reverse().find((m) => m.role === "assistant" && (
 		m.content.includes("blueprint is complete") ||
 		m.content.includes("The blueprint is complete") ||
 		m.content.includes("blueprint is ready") ||
+		m.content.includes("automation is ready") ||
+		m.content.includes("Automation blueprint") ||
 		m.content.includes("Start Process") ||
-		(m.content.includes("Role:") && m.content.includes("Skill:"))
+		m.content.includes("Approve & Provision") ||
+		(m.content.includes("Goal:") && m.content.includes("Trigger:"))
 	));
 
 	if (!recentAssistant) return null;
 	const text = recentAssistant.content;
 
-	// Extract employee name (e.g. **SupportBot** or SupportBot)
-	const nameMatch = text.match(/\*\*([A-Za-z0-9_\-\s]+)\*\*\s*(?:—|-|\n)/) || text.match(/blueprint(?:\s+is\s+complete)?[:\s]+(?:\*\*)?([A-Za-z0-9_\-]+)/i) || text.match(/(?:employee|name)[:\s]+\*\*?([A-Za-z0-9_\-]+)\*?/i);
-	const name = nameMatch ? nameMatch[1].trim() : "SupportBot";
+	const nameMatch = text.match(/\*\*([A-Za-z0-9_\-\s]+)\*\*\s*(?:—|-|\n)/) || text.match(/blueprint(?:\s+is\s+complete)?[:\s]+(?:\*\*)?([A-Za-z0-9_\-]+)/i) || text.match(/(?:automation|employee|name)[:\s]+\*\*?([A-Za-z0-9_\-]+)\*?/i);
+	const name = nameMatch ? nameMatch[1].trim() : "New Automation";
 
-	// Extract summary or role
-	const roleMatch = text.match(/(?:Role|Primary focus|Focus)[:\s]+\*?([^\n\*\-]+)/i);
-	const role = roleMatch ? roleMatch[1].trim() : "Customer Support Specialist";
+	const goalMatch = text.match(/(?:Goal)[:\s]+\*?([^\n\*\-]+)/i);
+	const goal = goalMatch ? goalMatch[1].trim() : "Automation ready for your n8n";
 
 	return {
 		runId: fallbackRunId || recentAssistant.id,
 		name,
-		summary: `${name} — ${role}`,
+		summary: `${name} — ${goal}`,
+		goal,
 		status: "READY_FOR_REVIEW",
 	};
 }
@@ -260,21 +279,22 @@ export function ChatPage({ conversationId: initialConversationId }: { conversati
 		setIsConfirming(true);
 		setError(null);
 		try {
-			const result = await confirmEmployeeDesign(pendingApproval.runId, {
+			const idToConfirm = pendingApproval.runId || conversationIdRef.current || "";
+			const result = await confirmAutomationDesign(idToConfirm, {
 				confirm: true,
-				blueprintRevision: pendingApproval.blueprintRevision ?? "",
+				...(pendingApproval.blueprintRevision ? { blueprintRevision: pendingApproval.blueprintRevision } : {}),
 			});
-			if (result.status === "COMPLETED") {
+			if (result.status === "COMPLETED" || (result as unknown as { status?: string }).status === "COMPLETED") {
 				setPendingApproval(null);
-				setCreatedSuccess(`🎉 ${pendingApproval.name} has been created and configured successfully!`);
+				setCreatedSuccess(`🎉 ${pendingApproval.name} is now ACTIVE in your n8n — ready to run.`);
 				if (conversationIdRef.current) {
 					await checkConversationApproval(conversationIdRef.current);
 				}
 			} else {
-				setError(result.response || "Could not create the employee draft.");
+				setError(result.response || "Could not provision the automation.");
 			}
 		} catch (err) {
-			setError(err instanceof Error ? err.message : "Could not confirm the employee draft.");
+			setError(err instanceof Error ? err.message : "Could not confirm the automation.");
 		} finally {
 			setIsConfirming(false);
 		}

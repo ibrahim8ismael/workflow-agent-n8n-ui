@@ -16,7 +16,7 @@ import {
 	ItemMedia,
 	ItemTitle,
 } from "@/components/ui/item";
-import { UsersIcon, PlugIcon, CreditCardIcon, ChevronRightIcon, UserPlusIcon } from "lucide-react";
+import { UsersIcon, PlugIcon, CreditCardIcon, ChevronRightIcon, UserPlusIcon, WorkflowIcon } from "lucide-react";
 import Button from "@/components/shared/Button";
 import { useTranslation } from "react-i18next";
 
@@ -29,6 +29,12 @@ export function QuickActions() {
 			description: t("viewAiEmployees", { defaultValue: "View and edit your AI employees." }),
 			href: "/agents",
 			icon: <UsersIcon aria-hidden="true" className="w-4 h-4 text-blue-500" />,
+		},
+		{
+			title: t("automations", { defaultValue: "Automations" }),
+			description: t("automationsDesc", { defaultValue: "Design & provision in your n8n." }),
+			href: "/automations",
+			icon: <WorkflowIcon aria-hidden="true" className="w-4 h-4 text-violet-500" />,
 		},
 		{
 			title: t("connectIntegrations", { defaultValue: "Integrations & Tools" }),
