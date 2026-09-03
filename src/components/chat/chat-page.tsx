@@ -84,8 +84,19 @@ function getPendingApprovalFromConversation(conv: Conversation | null, defaultRu
 	};
 }
 
-function getPendingApprovalFromMessages(messages: Message[], fallbackRunId?: string): PendingApproval | null {
+function hasDesignSession(conv: Conversation | null): boolean {
+	if (!conv || !conv.metadata || typeof conv.metadata !== "object") return false;
+	const meta = conv.metadata as Record<string, unknown>;
+	const design = (meta.automationDesign as Record<string, unknown> | undefined) ?? (meta.employeeDesign as Record<string, unknown> | undefined);
+	return !!design && typeof design === "object" && !!(design.blueprint || design.status || design.approvalStatus);
+}
+
+function getPendingApprovalFromMessages(messages: Message[], fallbackRunId?: string, designSession = false): PendingApproval | null {
 	if (!messages || messages.length === 0) return null;
+	// Never fabricate an approval from chat prose alone: without a real design
+	// session (run metadata + parked WAITING run) there is nothing confirmable,
+	// and confirming a message/conversation id always fails backend-side.
+	if (!designSession || !fallbackRunId) return null;
 	const recentAssistant = [...messages].reverse().find((m) => m.role === "assistant" && (
 		m.content.includes("blueprint is complete") ||
 		m.content.includes("The blueprint is complete") ||
@@ -107,7 +118,7 @@ function getPendingApprovalFromMessages(messages: Message[], fallbackRunId?: str
 	const goal = goalMatch ? goalMatch[1].trim() : "Automation ready for your n8n";
 
 	return {
-		runId: fallbackRunId || recentAssistant.id,
+		runId: fallbackRunId,
 		name,
 		summary: `${name} — ${goal}`,
 		goal,
@@ -153,9 +164,9 @@ export function ChatPage({ conversationId: initialConversationId }: { conversati
 					setConversation(loadedConversation);
 					setAgentId(loadedConversation.agentId);
 					setMessages(loadedMessages);
-					const pending =
-						getPendingApprovalFromConversation(loadedConversation) ||
-						getPendingApprovalFromMessages(loadedMessages, loadedConversation.id);
+				const pending =
+					getPendingApprovalFromConversation(loadedConversation) ||
+					getPendingApprovalFromMessages(loadedMessages, loadedConversation.id, hasDesignSession(loadedConversation));
 					if (pending) setPendingApproval(pending);
 				}
 			} catch (err) {
@@ -183,9 +194,9 @@ export function ChatPage({ conversationId: initialConversationId }: { conversati
 			]);
 			setConversation(updatedConv);
 			setMessages(updatedMessages);
-			const pending =
-				getPendingApprovalFromConversation(updatedConv, lastRunId) ||
-				getPendingApprovalFromMessages(updatedMessages, lastRunId || convId);
+		const pending =
+			getPendingApprovalFromConversation(updatedConv, lastRunId) ||
+			getPendingApprovalFromMessages(updatedMessages, lastRunId, hasDesignSession(updatedConv));
 			setPendingApproval(pending);
 		} catch {
 			// ignore polling error
@@ -246,10 +257,10 @@ export function ChatPage({ conversationId: initialConversationId }: { conversati
 							}
 						}
 					}
-					// Check if conversation now has an approved/ready blueprint
-					if (activeConversationId) {
-						await checkConversationApproval(activeConversationId);
-					}
+				// Check if conversation now has an approved/ready blueprint
+				if (activeConversationId) {
+					await checkConversationApproval(activeConversationId, lastRunId ?? undefined);
+				}
 				} catch {
 					// If streaming encountered an issue or is unsupported, fallback to createRun
 					if (!receivedAnyToken) {
@@ -276,10 +287,14 @@ export function ChatPage({ conversationId: initialConversationId }: { conversati
 
 	const handleConfirm = async () => {
 		if (!pendingApproval) return;
+		if (!pendingApproval.runId) {
+			setError("No design session to confirm — describe the automation again and Jaafar will prepare a design.");
+			return;
+		}
 		setIsConfirming(true);
 		setError(null);
 		try {
-			const idToConfirm = pendingApproval.runId || conversationIdRef.current || "";
+			const idToConfirm = pendingApproval.runId;
 			const result = await confirmAutomationDesign(idToConfirm, {
 				confirm: true,
 				...(pendingApproval.blueprintRevision ? { blueprintRevision: pendingApproval.blueprintRevision } : {}),
