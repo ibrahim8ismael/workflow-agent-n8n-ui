@@ -27,6 +27,7 @@ export type IntegrationCategory =
   | "ANALYTICS"
   | "STORAGE"
   | "OTHER";
+/** @deprecated ADR-011 — Skills removed; kept for read compat until drop migration. */
 export type SkillExecutionMode =
   | "AI_ONLY"
   | "N8N_WORKFLOW"
@@ -34,6 +35,7 @@ export type SkillExecutionMode =
   | "MEMORY_RETRIEVAL"
   | "HYBRID"
   | "HUMAN_APPROVAL";
+/** @deprecated ADR-011 */
 export type SkillStatus =
   | "DRAFT"
   | "TESTING"
@@ -41,6 +43,7 @@ export type SkillStatus =
   | "ACTIVE"
   | "DEPRECATED"
   | "ARCHIVED";
+/** @deprecated ADR-011 */
 export type SkillVisibility = "PRIVATE" | "ORGANIZATION" | "PUBLIC";
 export type RunStatus =
   | "CREATED"
@@ -129,9 +132,80 @@ export interface CreateAgentInput {
 export type UpdateAgentInput = Partial<CreateAgentInput>;
 
 // ----------------------------------------------------------------------
-// Skills
+// Automations & N8n Connections (ADR-011 client-managed n8n)
 // ----------------------------------------------------------------------
 
+export type N8nConnectionStatus =
+  | "PENDING_VERIFICATION"
+  | "ACTIVE"
+  | "INVALID"
+  | "SUSPENDED";
+
+export interface N8nConnection {
+  id: string;
+  name: string;
+  baseUrl: string;
+  status: N8nConnectionStatus | string;
+  lastVerifiedAt: string | null;
+  lastError: string | null;
+  keyPreview: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type AutomationStatus =
+  | "DESIGN"
+  | "PENDING_APPROVAL"
+  | "PROVISIONING"
+  | "ACTIVE"
+  | "FAILED"
+  | "SUSPENDED";
+
+export interface AutomationBlueprint {
+  ready: boolean;
+  missingRequirements: string[];
+  name: string;
+  goal: string;
+  summary: string;
+  description?: string;
+  trigger: {
+    type: "webhook" | "schedule" | "manual" | "chat";
+    config?: Record<string, unknown>;
+  };
+  steps: Array<{
+    name: string;
+    action: string;
+    description?: string;
+    integration?: string;
+    config?: Record<string, unknown>;
+  }>;
+  integrations: string[];
+  inputContract?: Record<string, unknown>;
+  outputContract?: Record<string, unknown>;
+  riskNotes?: string[];
+}
+
+export interface Automation {
+  id: string;
+  name: string;
+  description: string | null;
+  blueprint: AutomationBlueprint | Record<string, unknown>;
+  status: AutomationStatus | string;
+  connectionId: string;
+  externalWorkflowId: string | null;
+  webhookPath: string | null;
+  lastSyncedAt: string | null;
+  blueprintRevision: string | null;
+  lastError: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ----------------------------------------------------------------------
+// Skills (deprecated)
+// ----------------------------------------------------------------------
+
+/** @deprecated ADR-011 — see Automation. */
 export interface Skill {
   id: string;
   name: string;
@@ -173,6 +247,7 @@ export interface CreateSkillInput {
 
 export type UpdateSkillInput = Partial<CreateSkillInput>;
 
+/** @deprecated ADR-011 */
 export interface AgentSkill {
   id: string;
   agentId: string;
@@ -502,4 +577,196 @@ export interface PaginationParams {
   skip?: number;
   take?: number;
 }
+
+// ----------------------------------------------------------------------
+// System Administration (Module: AdminModule)
+// ----------------------------------------------------------------------
+
+export interface AdminDashboardStats {
+  totalUsers: number;
+  activeOrganizations: number;
+  totalRunsToday: number;
+  mrrUsd: number;
+  systemHealth: "HEALTHY" | "DEGRADED" | "CRITICAL" | string;
+}
+
+export interface AdminMrrData {
+  mrrUsd: number;
+  growthRate?: number;
+  history?: Array<{ date: string; mrr: number }>;
+  breakdownByPlan?: Record<string, number>;
+}
+
+export interface AdminChurnData {
+  churnRate: number;
+  churnedCount: number;
+  totalSubscribers: number;
+  period?: string;
+}
+
+export interface AdminCreditsBurnData {
+  days: number;
+  totalCreditsBurned: number;
+  dailyAverage: number;
+  history?: Array<{ date: string; credits: number }>;
+  breakdownByModel?: Record<string, number>;
+}
+
+export interface AdminArpuData {
+  arpuUsd: number;
+  arpuByPlan?: Record<string, number>;
+}
+
+export interface AdminUserListItem {
+  id: string;
+  email: string;
+  name?: string | null;
+  role: UserRole;
+  isEmailVerified: boolean;
+  isSuspended?: boolean;
+  suspensionReason?: string | null;
+  organizationCount?: number;
+  walletBalance?: string | number;
+  avatarUrl?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdminUserStats {
+  totalUsers: number;
+  activeUsers: number;
+  suspendedUsers: number;
+  adminUsers: number;
+  newUsersLast30Days?: number;
+}
+
+export interface AdminOrganizationListItem {
+  id: string;
+  name: string;
+  slug?: string;
+  ownerId?: string;
+  ownerEmail?: string;
+  memberCount?: number;
+  agentCount?: number;
+  isSuspended?: boolean;
+  suspensionReason?: string | null;
+  currentPlan?: string;
+  walletBalanceCredits?: string | number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdminOrganizationStats {
+  totalOrganizations: number;
+  activeOrganizations: number;
+  suspendedOrganizations: number;
+  enterpriseCount?: number;
+}
+
+export interface CreatePlanInput {
+  name: string;
+  description?: string;
+  price: number;
+  currency?: string;
+  interval?: "month" | "year" | string;
+  features?: Record<string, unknown>;
+  isActive?: boolean;
+}
+
+export type UpdatePlanInput = Partial<CreatePlanInput>;
+
+export interface AdminWalletTopUpInput {
+  credits: string | number;
+  description: string;
+}
+
+export interface AdminWalletDeductInput {
+  credits: string | number;
+  description: string;
+}
+
+export type CouponType =
+  | "FREE_CREDITS"
+  | "PERCENTAGE_DISCOUNT"
+  | "FIXED_DISCOUNT"
+  | string;
+
+export interface AdminCoupon {
+  id: string;
+  code: string;
+  type: CouponType;
+  value: number;
+  maxRedemptions?: number | null;
+  redemptionCount?: number;
+  expiresAt?: string | null;
+  isActive?: boolean;
+  createdAt: string;
+}
+
+export interface CreateCouponInput {
+  code: string;
+  type: CouponType;
+  value: number;
+  maxRedemptions?: number;
+  expiresAt?: string;
+}
+
+export interface FeatureFlagOverride {
+  id?: string;
+  entityType: "ORGANIZATION" | "USER";
+  entityId: string;
+  enabled: boolean;
+  reason?: string;
+  createdAt?: string;
+}
+
+export interface AdminFeatureFlag {
+  id?: string;
+  key: string;
+  name: string;
+  description?: string;
+  enabled: boolean;
+  overrides?: FeatureFlagOverride[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CreateFeatureFlagInput {
+  key: string;
+  name: string;
+  description?: string;
+  enabled?: boolean;
+}
+
+export interface SetFeatureFlagOverrideInput {
+  entityType: "ORGANIZATION" | "USER";
+  entityId: string;
+  enabled: boolean;
+  reason?: string;
+}
+
+export interface AdminAuditLog {
+  id: string;
+  userId?: string | null;
+  userEmail?: string | null;
+  action: string;
+  entityType?: string | null;
+  entityId?: string | null;
+  metadata?: Record<string, unknown> | null;
+  ipAddress?: string | null;
+  userAgent?: string | null;
+  createdAt: string;
+}
+
+export interface AdminImpersonationLog {
+  id: string;
+  adminId: string;
+  adminEmail?: string;
+  impersonatedUserId: string;
+  impersonatedUserEmail?: string;
+  reason: string;
+  ipAddress?: string;
+  createdAt: string;
+}
+
 

@@ -53,6 +53,7 @@ import {
   MoreHorizontalIcon,
   PencilIcon,
   RefreshCwIcon,
+  Sparkles as SparklesIcon,
   SquareIcon,
 } from "lucide-react";
 import {
@@ -65,6 +66,7 @@ import {
   type FC,
   type PropsWithChildren,
 } from "react";
+import { ChatContext } from "@/lib/chat-context";
 import { MENTION_OPTIONS, SLASH_ACTIONS } from "@/lib/mentions";
 
 export type ThreadGroupPart = MessagePrimitive.GroupedParts.GroupPart;
@@ -153,13 +155,15 @@ const ThreadRoot: FC<{ isEmpty: boolean }> = ({ isEmpty }) => {
 
           <ThreadPrimitive.ViewportFooter
             className={cn(
-              "aui-thread-viewport-footer bg-background flex flex-col gap-4 overflow-visible pb-4 md:pb-6",
+              "aui-thread-viewport-footer bg-background flex flex-col gap-3 overflow-visible pb-4 md:pb-6",
               !isEmpty &&
                 "sticky bottom-0 mt-auto rounded-t-(--composer-radius)",
             )}
           >
             <ThreadScrollToBottom />
             <ThreadFollowupSuggestions />
+            <CreationSuccessNotification />
+            <BlueprintApprovalDock />
             <Composer />
             <AuiIf condition={(s) => isNewChatView(s) && s.composer.isEmpty}>
               <ThreadSuggestions />
@@ -168,6 +172,78 @@ const ThreadRoot: FC<{ isEmpty: boolean }> = ({ isEmpty }) => {
         </div>
       </ThreadPrimitive.Viewport>
     </ThreadPrimitive.Root>
+  );
+};
+
+const BlueprintApprovalDock: FC = () => {
+  const chatContext = useContext(ChatContext);
+  if (!chatContext?.pendingApproval) return null;
+  const { pendingApproval, isConfirming, onConfirmApproval } = chatContext;
+
+  return (
+    <div className="w-full animate-in fade-in-50 slide-in-from-bottom-2 duration-200">
+      <div className="rounded-2xl border border-primary/30 bg-card/95 backdrop-blur-md p-3.5 shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-start gap-3 min-w-0">
+          <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20">
+            <SparklesIcon className="size-4.5 animate-pulse text-primary" />
+          </div>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-primary">Automation Ready</span>
+              <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">Ready to provision</span>
+              {pendingApproval.triggerType && (
+                <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-mono text-primary border border-primary/20">{pendingApproval.triggerType}</span>
+              )}
+              {typeof pendingApproval.stepCount === "number" && (
+                <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">{pendingApproval.stepCount} steps</span>
+              )}
+            </div>
+            <h4 className="text-sm font-semibold text-foreground truncate mt-0.5">{pendingApproval.name}</h4>
+            <p className="text-xs text-muted-foreground line-clamp-1">{pendingApproval.summary}</p>
+            {pendingApproval.blueprintRevision && (
+              <p className="text-[11px] font-mono text-muted-foreground/70 mt-0.5">rev {pendingApproval.blueprintRevision}</p>
+            )}
+          </div>
+        </div>
+        <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+          <Button
+            onClick={onConfirmApproval}
+            disabled={isConfirming}
+            size="sm"
+            className="h-9 px-4 rounded-xl font-medium shadow-sm gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90"
+          >
+            {isConfirming ? (
+              <>
+                <RefreshCwIcon className="size-3.5 animate-spin" />
+                <span>Provisioning…</span>
+              </>
+            ) : (
+              <>
+                <CheckIcon className="size-3.5" />
+                <span>Approve & Provision</span>
+              </>
+            )}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const CreationSuccessNotification: FC = () => {
+  const chatContext = useContext(ChatContext);
+  if (!chatContext?.createdSuccess) return null;
+  const { createdSuccess, onDismissSuccess } = chatContext;
+
+  return (
+    <div className="w-full animate-in fade-in-50 slide-in-from-bottom-2 duration-200">
+      <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 backdrop-blur-md p-3 text-emerald-800 dark:text-emerald-300 text-xs flex items-center justify-between gap-2 shadow-sm">
+        <span className="font-medium">{createdSuccess}</span>
+        <Button variant="ghost" size="xs" onClick={onDismissSuccess} className="h-6 px-2 text-xs hover:bg-emerald-500/20">
+          Dismiss
+        </Button>
+      </div>
+    </div>
   );
 };
 
@@ -388,7 +464,7 @@ const Composer: FC = () => {
 };
 
 import { DynamicBarsIcon } from "@/components/ui/ai-chat-input";
-import { ChatContext, EffortLevel } from "@/lib/chat-context";
+import type { EffortLevel } from "@/lib/chat-context";
 
 const EFFORTS: EffortLevel[] = ["Low", "Medium", "Max Effort"];
 

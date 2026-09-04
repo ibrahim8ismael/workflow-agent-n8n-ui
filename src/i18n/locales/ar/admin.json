@@ -1,0 +1,274 @@
+{
+  "title": "إدارة المنصة والنظام",
+  "subtitle": "صحة النظام، إدارة الحسابات والمؤسسات، باقات الاشتراك، والحوكمة والرقابة.",
+  "backToWorkspace": "العودة إلى مساحة العمل",
+  "accessDenied": "تم تقييد الوصول",
+  "accessDeniedDesc": "يتطلب الوصول إلى لوحة تحكم الإدارة صلاحية مدير النظام (SYSTEM_ADMINISTRATOR).",
+  "systemHealth": {
+    "title": "حالة النظام",
+    "HEALTHY": "جميع الأنظمة تعمل بكفاءة",
+    "DEGRADED": "أداء متراجع جزئياً",
+    "CRITICAL": "حادث تشغيلي حرج",
+    "unknown": "الحالة غير معروفة"
+  },
+  "nav": {
+    "dashboard": "نظرة عامة",
+    "analytics": "تحليلات المنصة",
+    "users": "حسابات المستخدمين",
+    "organizations": "المؤسسات",
+    "plans": "خطط الاشتراك",
+    "wallets": "المحافظ والأرصدة",
+    "coupons": "القسائم والعروض",
+    "featureFlags": "مفاتيح الميزات",
+    "auditLogs": "سجلات التدقيق"
+  },
+  "analytics": {
+    "title": "تحليلات المنصة والمؤشرات المالية",
+    "mrr": "الإيرادات الشهرية المتكررة (MRR)",
+    "churn": "معدل الإلغاء الشهري (Churn)",
+    "arpu": "متوسط الإيراد لكل مستخدم (ARPU)",
+    "creditsBurn": "معدل استهلاك أرصدة الذكاء الاصطناعي",
+    "totalRuns": "إجمالي التشغيلات اليوم",
+    "totalUsers": "المستخدمون المسجلون",
+    "activeOrgs": "المؤسسات النشطة",
+    "burn30Days": "استهلاك آخر 30 يوماً",
+    "dailyAvg": "المعدل اليومي",
+    "revenueByPlan": "الإيرادات حسب الخطة",
+    "timeRange": "النطاق الزمني",
+    "last7Days": "آخر 7 أيام",
+    "last30Days": "آخر 30 يوماً",
+    "last90Days": "آخر 90 يوماً"
+  },
+  "users": {
+    "title": "إدارة المستخدمين",
+    "searchPlaceholder": "البحث بالاسم أو البريد الإلكتروني...",
+    "total": "إجمالي المستخدمين",
+    "active": "النشطون",
+    "suspended": "المعلقون",
+    "admins": "المسؤولون",
+    "new30d": "الجدد (30 يوماً)",
+    "columns": {
+      "user": "المستخدم",
+      "role": "الدور",
+      "status": "الحالة",
+      "organizations": "المؤسسات",
+      "createdAt": "تاريخ الانضمام",
+      "actions": "الإجراءات"
+    },
+    "roles": {
+      "USER": "مستخدم",
+      "SYSTEM_ADMINISTRATOR": "مدير نظام"
+    },
+    "statusActive": "نشط",
+    "statusSuspended": "معلّق",
+    "statusUnverified": "غير مؤكد",
+    "actions": {
+      "viewDetails": "عرض التفاصيل",
+      "suspend": "تعليق الحساب",
+      "reactivate": "إعادة التفعيل",
+      "impersonate": "تقمص الجلسة (Impersonate)",
+      "adjustWallet": "تعديل الرصيد"
+    },
+    "suspendDialog": {
+      "title": "تعليق حساب المستخدم",
+      "description": "سيتم تسجيل خروج المستخدم فوراً ومنعه من تشغيل الموظفين الرقميين.",
+      "reasonLabel": "سبب التعليق",
+      "reasonPlaceholder": "مثال: انتهاك شروط الخدمة أو إساءة استخدام الرموز...",
+      "confirm": "تعليق الحساب",
+      "cancel": "إلغاء"
+    },
+    "reactivateDialog": {
+      "title": "إعادة تفعيل الحساب",
+      "description": "استعادة حق الدخول الكامل للمستخدم واستئناف العمل على المنصة.",
+      "reasonLabel": "سبب إعادة التفعيل",
+      "reasonPlaceholder": "مثال: مراجعة الفريق المختص وتأكيد الامتثال...",
+      "confirm": "إعادة التفعيل",
+      "cancel": "إلغاء"
+    },
+    "impersonateDialog": {
+      "title": "تقمص جلسة المستخدم",
+      "description": "سيتم توليد رمز جلسة مؤقت لمعاينة المنصة كمستخدم مستهدف لأغراض الدعم. يتم تسجيل كل إجراء في سجلات التدقيق.",
+      "reasonLabel": "المبرر / السبب",
+      "reasonPlaceholder": "مثال: استكشاف مشكلة في مزامنة الفواتير...",
+      "confirm": "بدء الجلسة",
+      "cancel": "إلغاء"
+    }
+  },
+  "organizations": {
+    "title": "إدارة المؤسسات",
+    "searchPlaceholder": "البحث باسم المؤسسة...",
+    "total": "إجمالي المؤسسات",
+    "active": "النشطة",
+    "suspended": "المعلقة",
+    "enterprise": "المؤسسية (Enterprise)",
+    "columns": {
+      "organization": "المؤسسة",
+      "owner": "المالك",
+      "members": "الأعضاء",
+      "agents": "الموظفون الرقميون",
+      "plan": "الخطة",
+      "status": "الحالة",
+      "createdAt": "تاريخ الإنشاء",
+      "actions": "الإجراءات"
+    },
+    "suspendDialog": {
+      "title": "تعليق المؤسسة",
+      "description": "سيتم إيقاف جميع أعضاء هذه المؤسسة مؤقتاً عن تشغيل عملاء الذكاء الاصطناعي.",
+      "reasonLabel": "سبب التعليق",
+      "reasonPlaceholder": "مثال: انتهاء فترة السماح للسداد...",
+      "confirm": "تعليق المؤسسة",
+      "cancel": "إلغاء"
+    }
+  },
+  "plans": {
+    "title": "إدارة خطط الاشتراك",
+    "subtitle": "تهيئة باقات التسعير وحصص الموظفين الرقميين وميزات المنصة.",
+    "createNew": "إنشاء خطة جديدة",
+    "editPlan": "تعديل الخطة",
+    "columns": {
+      "name": "اسم الخطة",
+      "price": "السعر",
+      "interval": "دورة الفوترة",
+      "features": "سعة الموظفين والميزات",
+      "status": "الحالة",
+      "actions": "الإجراءات"
+    },
+    "form": {
+      "nameLabel": "اسم الخطة",
+      "namePlaceholder": "مثال: Enterprise Scale",
+      "descLabel": "الوصف",
+      "descPlaceholder": "مثال: موظفون رقميون غير محدودين مع تنفيذ فائق السرعة",
+      "priceLabel": "السعر (USD)",
+      "currencyLabel": "العملة",
+      "intervalLabel": "الدورة",
+      "intervalMonth": "شهري",
+      "intervalYear": "سنوي",
+      "maxEmployeesLabel": "الحد الأقصى للموظفين الرقميين",
+      "prioritySupportLabel": "دعم فني ذو أولوية",
+      "activeLabel": "متاحة للاشتراكات الجديدة",
+      "save": "حفظ الخطة",
+      "create": "إنشاء الخطة",
+      "cancel": "إلغاء"
+    }
+  },
+  "wallets": {
+    "title": "المحافظ والرصيد الائتماني",
+    "subtitle": "منح أرصدة إضافية، استرداد الأرصدة المتنازع عليها، وتجميد المحافظ المشبوهة.",
+    "lookupPlaceholder": "أدخل معرف المحفظة أو معرف المؤسسة...",
+    "topUp": "شحن رصيد",
+    "deduct": "خصم رصيد",
+    "freeze": "تجميد المحفظة",
+    "unfreeze": "إلغاء التجميد",
+    "topUpDialog": {
+      "title": "شحن رصيد يدوي",
+      "description": "منح رصيد مجاملة أو ترويجي مباشرة إلى هذه المحفظة.",
+      "creditsLabel": "عدد الأرصدة الممنوحة",
+      "descLabel": "ملاحظة السجل / المبرر",
+      "descPlaceholder": "مثال: تسوية مجاملة من الدعم الفني",
+      "confirm": "منح الرصيد",
+      "cancel": "إلغاء"
+    },
+    "deductDialog": {
+      "title": "خصم رصيد / استرداد",
+      "description": "سحب رصيد من هذه المحفظة.",
+      "creditsLabel": "عدد الأرصدة المراد خصمها",
+      "descLabel": "ملاحظة السجل / المبرر",
+      "descPlaceholder": "مثال: استرداد لعملية متنازع عليها",
+      "confirm": "خصم الرصيد",
+      "cancel": "إلغاء"
+    },
+    "freezeDialog": {
+      "title": "تجميد المحفظة",
+      "description": "يمنع التجميد استخدام الأرصدة أو تشغيل الموظفين الرقميين من هذه المحفظة.",
+      "confirm": "تجميد المحفظة",
+      "cancel": "إلغاء"
+    },
+    "unfreezeDialog": {
+      "title": "إلغاء تجميد المحفظة",
+      "description": "سيؤدي إلغاء التجميد إلى استعادة القدرة الفورية على استهلاك الرصيد.",
+      "confirm": "إلغاء التجميد",
+      "cancel": "إلغاء"
+    }
+  },
+  "coupons": {
+    "title": "إدارة القسائم والرموز الترويجية",
+    "createNew": "إنشاء قسيمة جديدة",
+    "columns": {
+      "code": "رمز القسيمة",
+      "type": "النوع",
+      "value": "القيمة",
+      "redemptions": "مرات الاستخدام",
+      "expiresAt": "تاريخ الانتهاء",
+      "status": "الحالة"
+    },
+    "types": {
+      "FREE_CREDITS": "أرصدة مجانية",
+      "PERCENTAGE_DISCOUNT": "خصم نسبي %",
+      "FIXED_DISCOUNT": "خصم ثابت"
+    },
+    "form": {
+      "codeLabel": "رمز القسيمة",
+      "codePlaceholder": "مثال: SUMMER50",
+      "typeLabel": "نوع الخصم",
+      "valueLabel": "القيمة (رصيد أو نسبة %)",
+      "maxRedemptionsLabel": "أقصى مرات استخدام",
+      "expiresAtLabel": "تاريخ الانتهاء",
+      "create": "إنشاء القسيمة",
+      "cancel": "إلغاء"
+    }
+  },
+  "featureFlags": {
+    "title": "مفاتيح الميزات والإطلاق التدريجي",
+    "subtitle": "التحكم في توفر الميزات عالمياً أو لمؤسسات ومستخدمين محددين.",
+    "createNew": "إنشاء مفتاح ميزة",
+    "addOverride": "إضافة استثناء مخصص",
+    "columns": {
+      "flag": "مفتاح الميزة والاسم",
+      "description": "الوصف",
+      "globalStatus": "الحالة العامة",
+      "overrides": "الاستثناءات المخصصة",
+      "actions": "الإجراءات"
+    },
+    "form": {
+      "keyLabel": "مفتاح الميزة (Key)",
+      "keyPlaceholder": "مثال: enable_gpt5_preview",
+      "nameLabel": "اسم الميزة",
+      "namePlaceholder": "مثال: معاينة نموذج GPT-5",
+      "descLabel": "الوصف",
+      "descPlaceholder": "يمكّن اختيار النموذج في إعدادات الموظف الرقمي",
+      "enabledLabel": "مفعلة عاماً",
+      "create": "إنشاء المفتاح",
+      "cancel": "إلغاء"
+    },
+    "overrideDialog": {
+      "title": "تعيين استثناء مستهدف",
+      "entityTypeLabel": "نوع الكيان",
+      "orgType": "مؤسسة",
+      "userType": "مستخدم",
+      "entityIdLabel": "معرّف الكيان",
+      "entityIdPlaceholder": "مثال: org_12345 أو user_98765",
+      "enabledLabel": "حالة الاستثناء (مفعّل)",
+      "reasonLabel": "المبرر",
+      "reasonPlaceholder": "مثال: إطلاق تجريبي مبكر",
+      "confirm": "تطبيق الاستثناء",
+      "cancel": "إلغاء"
+    }
+  },
+  "auditLogs": {
+    "title": "سجلات التدقيق والامتثال",
+    "tabPlatform": "إجراءات المنصة",
+    "tabImpersonation": "مسار التقمص (Impersonations)",
+    "filterAction": "تصفية حسب الإجراء",
+    "filterUser": "تصفية حسب المستخدم",
+    "columns": {
+      "timestamp": "الوقت والتاريخ",
+      "actor": "المنفّذ",
+      "action": "الإجراء",
+      "target": "الكيان المستهدف",
+      "ipAddress": "عنوان IP",
+      "details": "التفاصيل",
+      "reason": "المبرر",
+      "impersonatedUser": "المستخدم المتقمّص"
+    }
+  }
+}

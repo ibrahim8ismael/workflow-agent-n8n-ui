@@ -41,12 +41,13 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ApiError } from "@/lib/api/client";
-import { archiveAgent, detachSkill, getAgent, listAgentSkills, updateAgent } from "@/lib/api/agents";
+import { archiveAgent, getAgent, updateAgent } from "@/lib/api/agents";
 import { listAgentMemory, createMemory, deleteMemory } from "@/lib/api/memory";
 import { listOrganizationIntegrations } from "@/lib/api/integrations";
-import type { Agent, AgentStatus, Integration, Memory, Skill } from "@/lib/api/types";
+import { listAutomations } from "@/lib/api/automations";
+import type { Agent, AgentStatus, Automation, Integration, Memory } from "@/lib/api/types";
 
-type TabType = "prompts" | "skills" | "integrations";
+type TabType = "prompts" | "automations" | "integrations";
 
 const STATUS_META: Record<AgentStatus, { label: string; className: string }> = {
 	PUBLISHED: { label: "Active", className: "bg-emerald-500/10 text-emerald-600 border-transparent" },
@@ -87,13 +88,12 @@ export default function AgentDetailPage() {
 	const id = params?.id as string;
 
 	const [agent, setAgent] = useState<Agent | null>(null);
-	const [skills, setSkills] = useState<Skill[]>([]);
+	const [automations, setAutomations] = useState<Automation[]>([]);
 	const [memory, setMemory] = useState<Memory[]>([]);
 	const [integrations, setIntegrations] = useState<Integration[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [notFound, setNotFound] = useState(false);
 	const [error, setError] = useState<string | null>(null);
-	const [busySkillId, setBusySkillId] = useState<string | null>(null);
 	const [activeTab, setActiveTab] = useState<TabType>("prompts");
 
 	const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -114,12 +114,12 @@ export default function AgentDetailPage() {
 				setNotFound(false);
 				setError(null);
 
-				const [skillsData, memoryData] = await Promise.all([
-					listAgentSkills(id).catch(() => [] as Skill[]),
+				const [automationsData, memoryData] = await Promise.all([
+					listAutomations().catch(() => [] as Automation[]),
 					listAgentMemory(id).catch(() => [] as Memory[]),
 				]);
 				if (controller.signal.aborted) return;
-				setSkills(skillsData);
+				setAutomations(automationsData);
 				setMemory(memoryData);
 
 				if (agentData.organizationId) {
@@ -153,11 +153,11 @@ export default function AgentDetailPage() {
 			setNotFound(false);
 			setError(null);
 
-			const [skillsData, memoryData] = await Promise.all([
-				listAgentSkills(id).catch(() => [] as Skill[]),
+			const [automationsData, memoryData] = await Promise.all([
+				listAutomations().catch(() => [] as Automation[]),
 				listAgentMemory(id).catch(() => [] as Memory[]),
 			]);
-			setSkills(skillsData);
+			setAutomations(automationsData);
 			setMemory(memoryData);
 
 			if (agentData.organizationId) {
@@ -176,23 +176,6 @@ export default function AgentDetailPage() {
 			}
 		} finally {
 			setLoading(false);
-		}
-	};
-
-	const handleDetachSkill = async (skillId: string) => {
-		if (busySkillId) return;
-		setBusySkillId(skillId);
-		try {
-			await detachSkill(id, skillId);
-			setSkills((prev) => prev.filter((s) => s.id !== skillId));
-		} catch (err) {
-			if (err instanceof ApiError) {
-				setError(err.message);
-			} else {
-				setError("Could not detach the skill. Please try again.");
-			}
-		} finally {
-			setBusySkillId(null);
 		}
 	};
 
@@ -355,7 +338,7 @@ export default function AgentDetailPage() {
 
 			{/* Custom Tabs Navigation */}
 			<div className="flex items-center gap-2 border-b border-border/40">
-				{(["prompts", "skills", "integrations"] as TabType[]).map((tab) => (
+				{(["prompts", "automations", "integrations"] as TabType[]).map((tab) => (
 					<button
 						key={tab}
 						onClick={() => setActiveTab(tab)}
@@ -443,71 +426,45 @@ export default function AgentDetailPage() {
 					</div>
 				)}
 
-				{/* Skills Tab */}
-				{activeTab === "skills" && (
+				{/* Automations Tab */}
+				{activeTab === "automations" && (
 					<div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
 						<div className="flex items-center justify-between mb-6">
 							<div className="flex items-center gap-2">
-								<Settings2Icon className="w-5 h-5 text-amber-500" />
-								<h3 className="font-semibold text-lg">Active Skills</h3>
+								<Settings2Icon className="w-5 h-5 text-primary" />
+								<h3 className="font-semibold text-lg">Automations</h3>
+								<Badge variant="outline" className="text-xs">{automations.length}</Badge>
 							</div>
+							<Button variant="outline" size="sm" onClick={() => router.push("/automations")} className="h-8 text-xs gap-1.5">
+								<EyeIcon className="w-3.5 h-3.5" /> View all
+							</Button>
 						</div>
-						{skills.length === 0 ? (
+						{automations.length === 0 ? (
 							<div className="border-2 border-dashed border-border/60 rounded-2xl bg-muted/20 p-10 flex flex-col items-center justify-center text-center">
-								<h3 className="font-semibold text-foreground">No skills attached</h3>
-								<p className="text-sm text-muted-foreground mt-1 max-w-sm">Attach skills from the skills library to give this employee new capabilities.</p>
+								<h3 className="font-semibold text-foreground">No automations yet</h3>
+								<p className="text-sm text-muted-foreground mt-1 max-w-sm">Ask Jaafar to design an automation — it will be provisioned into your n8n when you approve it.</p>
+								<Button size="sm" className="mt-4 rounded-xl" onClick={() => router.push("/new")}>Ask Jaafar</Button>
 							</div>
 						) : (
-							<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-								{skills.map((skill) => (
-									<Card key={skill.id} className="group relative overflow-hidden border-border/50 bg-card/40 hover:bg-card hover:shadow-md transition-all duration-300 flex flex-col p-6 min-h-[180px]">
-										<div className="flex items-start gap-4 mb-3">
-											<div className="w-12 h-12 rounded-xl bg-background border border-border flex items-center justify-center shadow-sm p-2 shrink-0">
-												<img src="/3d-icons/3dicons-flash-dynamic-color.png" alt="Skill" className="w-full h-full object-contain" />
-											</div>
-											<div className="min-w-0">
-												<h4 className="font-semibold text-foreground text-lg mt-1 truncate">{skill.name}</h4>
-												<span className="text-xs text-muted-foreground font-mono">{skill.slug}</span>
-											</div>
+							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+								{automations.slice(0, 6).map((a) => (
+									<Card key={a.id} className="border-border/50 bg-card/40 p-4 flex flex-col gap-2 hover:shadow-sm transition-shadow">
+										<div className="flex items-start justify-between gap-2">
+											<h4 className="font-semibold text-sm truncate flex-1">{a.name}</h4>
+											<Badge variant={a.status === "ACTIVE" ? "default" : a.status === "FAILED" ? "destructive" : "outline"} className="text-[11px] shrink-0">
+												{a.status}
+											</Badge>
 										</div>
-										<p className="text-sm text-muted-foreground leading-relaxed flex-1 line-clamp-3">
-											{skill.description || "No description."}
-										</p>
-										<div className="flex items-center gap-2 mt-4">
-											<Badge variant="secondary" className="font-medium text-[10px]">{skill.executionMode}</Badge>
-										</div>
-
-										<div className="absolute inset-x-0 bottom-0 bg-card/95 backdrop-blur-sm border-t border-border/40 p-4 flex gap-3 translate-y-full group-hover:translate-y-0 transition-transform duration-200 ease-out">
-											<CustomButton variant="primary" showArrow={false} className="flex-1 h-9 rounded-xl text-sm font-semibold" disabled={busySkillId === skill.id}>
-												<EyeIcon className="w-4 h-4 mr-2" /> View
-											</CustomButton>
-
-											<AlertDialog>
-												<AlertDialogTrigger render={
-													<CustomButton variant="danger" showArrow={false} className="flex-1 h-9 rounded-xl text-sm font-semibold" disabled={busySkillId === skill.id}>
-														{busySkillId === skill.id ? <Loader2Icon className="w-4 h-4 animate-spin" /> : <Trash2Icon className="w-4 h-4 mr-2" />} Remove
-													</CustomButton>
-												} />
-												<AlertDialogContent>
-													<AlertDialogHeader>
-														<AlertDialogTitle>Remove Skill?</AlertDialogTitle>
-														<AlertDialogDescription>
-															Are you sure you want to remove <strong>{skill.name}</strong> from this agent? This action cannot be undone.
-														</AlertDialogDescription>
-													</AlertDialogHeader>
-													<AlertDialogFooter>
-														<AlertDialogCancel>Cancel</AlertDialogCancel>
-														<AlertDialogAction render={
-															<CustomButton variant="danger" size="xs" showArrow={false} onClick={() => handleDetachSkill(skill.id)}>Confirm Remove</CustomButton>
-														} className="p-0 border-0 bg-transparent hover:bg-transparent shadow-none ring-0" />
-													</AlertDialogFooter>
-												</AlertDialogContent>
-											</AlertDialog>
+										<p className="text-xs text-muted-foreground line-clamp-2">{a.description ?? (a.blueprint as { goal?: string })?.goal ?? ""}</p>
+										<div className="flex items-center gap-2 mt-2">
+											<Button variant="outline" size="xs" className="h-7 text-xs flex-1" onClick={() => router.push(`/automations/${a.id}`)}>Open</Button>
+											<span className="text-[11px] font-mono text-muted-foreground truncate">{a.blueprintRevision ?? ""}</span>
 										</div>
 									</Card>
 								))}
 							</div>
 						)}
+						<p className="text-xs text-muted-foreground mt-4">Automations run in your own n8n (client-managed). Manage all at <button onClick={() => router.push("/automations")} className="underline hover:text-foreground">/automations</button>.</p>
 					</div>
 				)}
 
@@ -626,6 +583,7 @@ export default function AgentDetailPage() {
 					</DialogFooter>
 				</DialogContent>
 			</Dialog>
+
 		</div>
 	);
 }

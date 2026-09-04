@@ -15,6 +15,7 @@ import { GeneralPage } from "@/components/settings/pages/general-page";
 import { ProfilePage } from "@/components/settings/pages/profile-page";
 import { BillingPage } from "@/components/settings/pages/billing-page";
 import { SecurityPage } from "@/components/settings/pages/security-page";
+import { IntegrationsPage } from "@/components/settings/pages/integrations-page";
 import { useAuthStore } from "@/stores/auth-store";
 import { useTranslation } from "react-i18next";
 
@@ -28,7 +29,7 @@ const PAGE_COMPONENTS: Record<SettingsPageId, React.ComponentType> = {
   security: SecurityPage,
   notifications: GeneralPage,
   members: GeneralPage,
-  integrations: GeneralPage,
+  integrations: IntegrationsPage,
   channels: GeneralPage,
 };
 

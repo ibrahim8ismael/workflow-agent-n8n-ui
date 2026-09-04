@@ -10,6 +10,8 @@ import enSettings from "./locales/en/settings.json";
 import enBilling from "./locales/en/billing.json";
 import enAuth from "./locales/en/auth.json";
 import enIntegrations from "./locales/en/integrations.json";
+import enAutomations from "./locales/en/automations.json";
+import enAdmin from "./locales/en/admin.json";
 
 import arCommon from "./locales/ar/common.json";
 import arSidebar from "./locales/ar/sidebar.json";
@@ -19,6 +21,8 @@ import arSettings from "./locales/ar/settings.json";
 import arBilling from "./locales/ar/billing.json";
 import arAuth from "./locales/ar/auth.json";
 import arIntegrations from "./locales/ar/integrations.json";
+import arAutomations from "./locales/ar/automations.json";
+import arAdmin from "./locales/ar/admin.json";
 
 export const resources = {
   en: {
@@ -30,6 +34,8 @@ export const resources = {
     billing: enBilling,
     auth: enAuth,
     integrations: enIntegrations,
+    automations: enAutomations,
+    admin: enAdmin,
   },
   ar: {
     common: arCommon,
@@ -40,6 +46,8 @@ export const resources = {
     billing: arBilling,
     auth: arAuth,
     integrations: arIntegrations,
+    automations: arAutomations,
+    admin: arAdmin,
   },
 } as const;
 
@@ -58,6 +66,8 @@ if (!i18n.isInitialized) {
       "billing",
       "auth",
       "integrations",
+      "automations",
+      "admin",
     ],
     interpolation: {
       escapeValue: false,

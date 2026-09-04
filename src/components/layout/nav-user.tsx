@@ -22,6 +22,7 @@ import {
 	LifeBuoyIcon,
 	LogOutIcon,
 	SettingsIcon,
+	ShieldCheckIcon,
 	UserIcon,
 } from "lucide-react";
 import { useAuthStore } from "@/stores/auth-store";
@@ -131,6 +132,15 @@ export function NavUser() {
 						<SettingsIcon className="text-muted-foreground" />
 						{t("settings")}
 					</DropdownMenuItem>
+					{user?.role === "SYSTEM_ADMINISTRATOR" && (
+						<DropdownMenuItem
+							className="h-9 rounded-lg px-2.5 font-medium text-primary focus:text-primary"
+							onClick={() => router.push("/admin")}
+						>
+							<ShieldCheckIcon className="text-primary" />
+							<span>Admin Console</span>
+						</DropdownMenuItem>
+					)}
 				</DropdownMenuGroup>
 
 				<DropdownMenuSeparator />
