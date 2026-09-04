@@ -60,7 +60,18 @@ function getPendingApprovalFromConversation(conv: Conversation | null, defaultRu
 
 	const status = design.status as string | undefined;
 	const approvalStatus = design.approvalStatus as string | undefined;
-	if (status !== "READY_FOR_REVIEW" && approvalStatus !== "READY" && !design.blueprint) return null;
+	const automationId = design.automationId as string | undefined;
+	// Only a ready, unprovisioned design is confirmable. The design graph
+	// persists a DRAFT blueprint even while gathering requirements, and a
+	// PROVISIONED session keeps its blueprint — neither may show an Approve
+	// button, or clicks hit runs that are COMPLETED backend-side.
+	const isReady = status === "READY_FOR_REVIEW" || approvalStatus === "READY";
+	const isResolved =
+		status === "PROVISIONED" ||
+		approvalStatus === "APPROVED" ||
+		approvalStatus === "REJECTED" ||
+		Boolean(automationId);
+	if (!isReady || isResolved) return null;
 
 	const bp = (design.blueprint as Record<string, unknown> | undefined) ?? {};
 	const runId = (design.sourceDesignRunId as string | undefined) ?? (design.runId as string | undefined) ?? defaultRunId ?? conv.id;
@@ -89,6 +100,15 @@ function hasDesignSession(conv: Conversation | null): boolean {
 	const meta = conv.metadata as Record<string, unknown>;
 	const design = (meta.automationDesign as Record<string, unknown> | undefined) ?? (meta.employeeDesign as Record<string, unknown> | undefined);
 	return !!design && typeof design === "object" && !!(design.blueprint || design.status || design.approvalStatus);
+}
+
+/** Backend confirm rejections that mean the card itself is stale. */
+function isUnconfirmableMessage(message: string): boolean {
+	return (
+		message.includes("no longer waiting") ||
+		message.includes("not an automation design") ||
+		message.includes("cannot be confirmed")
+	);
 }
 
 function getPendingApprovalFromMessages(messages: Message[], fallbackRunId?: string, designSession = false): PendingApproval | null {
@@ -306,12 +326,41 @@ export function ChatPage({ conversationId: initialConversationId }: { conversati
 					await checkConversationApproval(conversationIdRef.current);
 				}
 			} else {
-				setError(result.response || "Could not provision the automation.");
+				const message = result.response || "Could not provision the automation.";
+				setError(message);
+				// The backend rejected the confirm (stale/not-approvable design).
+				// Drop the card and re-sync from the conversation so a stale
+				// approval doesn't keep inviting clicks that can never succeed.
+				await refreshApprovalState();
 			}
 		} catch (err) {
-			setError(err instanceof Error ? err.message : "Could not confirm the automation.");
+			const message = err instanceof Error ? err.message : "Could not confirm the automation.";
+			setError(message);
+			if (isUnconfirmableMessage(message)) {
+				await refreshApprovalState();
+			}
 		} finally {
 			setIsConfirming(false);
+		}
+	};
+
+	/** Re-pulls conversation metadata; clears the card when the session resolved. */
+	const refreshApprovalState = async () => {
+		const convId = conversationIdRef.current;
+		if (!convId) return;
+		try {
+			const [updatedConv, updatedMessages] = await Promise.all([
+				getConversation(convId),
+				listConversationMessages(convId, { take: 100 }),
+			]);
+			setConversation(updatedConv);
+			setMessages(updatedMessages);
+			const pending =
+				getPendingApprovalFromConversation(updatedConv) ||
+				getPendingApprovalFromMessages(updatedMessages, updatedConv.id, hasDesignSession(updatedConv));
+			setPendingApproval(pending);
+		} catch {
+			// keep the current card on refresh failure
 		}
 	};
 
