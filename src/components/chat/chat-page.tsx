@@ -7,7 +7,7 @@ import { Thread } from "@/components/assistant-ui/thread";
 import { ChatContext, type EffortLevel } from "@/lib/chat-context";
 import { getJaafarAgent } from "@/lib/api/agents";
 import { createConversation, getConversation, listConversationMessages } from "@/lib/api/conversations";
-import { confirmAutomationDesign, createRun, streamRun } from "@/lib/api/runs";
+import { approveRun, createRun, streamRun } from "@/lib/api/runs";
 import { useAuthStore } from "@/stores/auth-store";
 import type { Conversation, Message } from "@/lib/api/types";
 import { Button } from "@/components/ui/button";
@@ -51,57 +51,6 @@ function getPendingApprovalFromPlan(runId: string, plan: unknown): PendingApprov
 	return null;
 }
 
-function getPendingApprovalFromConversation(conv: Conversation | null, defaultRunId?: string): PendingApproval | null {
-	if (!conv || !conv.metadata || typeof conv.metadata !== "object") return null;
-	const meta = conv.metadata as Record<string, unknown>;
-	// Prefer automationDesign, fallback to employeeDesign for back-compat
-	const design = (meta.automationDesign as Record<string, unknown> | undefined) ?? (meta.employeeDesign as Record<string, unknown> | undefined);
-	if (!design || typeof design !== "object") return null;
-
-	const status = design.status as string | undefined;
-	const approvalStatus = design.approvalStatus as string | undefined;
-	const automationId = design.automationId as string | undefined;
-	// Only a ready, unprovisioned design is confirmable. The design graph
-	// persists a DRAFT blueprint even while gathering requirements, and a
-	// PROVISIONED session keeps its blueprint — neither may show an Approve
-	// button, or clicks hit runs that are COMPLETED backend-side.
-	const isReady = status === "READY_FOR_REVIEW" || approvalStatus === "READY";
-	const isResolved =
-		status === "PROVISIONED" ||
-		approvalStatus === "APPROVED" ||
-		approvalStatus === "REJECTED" ||
-		Boolean(automationId);
-	if (!isReady || isResolved) return null;
-
-	const bp = (design.blueprint as Record<string, unknown> | undefined) ?? {};
-	const runId = (design.sourceDesignRunId as string | undefined) ?? (design.runId as string | undefined) ?? defaultRunId ?? conv.id;
-
-	const name = typeof bp.name === "string" ? bp.name : "New Automation";
-	const summary = typeof bp.summary === "string" ? bp.summary : typeof bp.goal === "string" ? bp.goal : typeof bp.description === "string" ? bp.description : "";
-	const goal = typeof bp.goal === "string" ? bp.goal : undefined;
-	const triggerType = (bp.trigger as { type?: string } | undefined)?.type;
-	const stepCount = Array.isArray(bp.steps) ? bp.steps.length : undefined;
-	const blueprintRevision = typeof design.blueprintRevision === "string" ? design.blueprintRevision : typeof bp.blueprintRevision === "string" ? bp.blueprintRevision : undefined;
-
-	return {
-		runId,
-		blueprintRevision,
-		name,
-		summary: summary || goal || "Ready to provision in your n8n.",
-		status: "READY_FOR_REVIEW",
-		goal,
-		triggerType,
-		stepCount,
-	};
-}
-
-function hasDesignSession(conv: Conversation | null): boolean {
-	if (!conv || !conv.metadata || typeof conv.metadata !== "object") return false;
-	const meta = conv.metadata as Record<string, unknown>;
-	const design = (meta.automationDesign as Record<string, unknown> | undefined) ?? (meta.employeeDesign as Record<string, unknown> | undefined);
-	return !!design && typeof design === "object" && !!(design.blueprint || design.status || design.approvalStatus);
-}
-
 /** Backend confirm rejections that mean the card itself is stale. */
 function isUnconfirmableMessage(message: string): boolean {
 	return (
@@ -111,41 +60,6 @@ function isUnconfirmableMessage(message: string): boolean {
 		message.includes("already being processed") ||
 		message.includes("already finished")
 	);
-}
-
-function getPendingApprovalFromMessages(messages: Message[], fallbackRunId?: string, designSession = false): PendingApproval | null {
-	if (!messages || messages.length === 0) return null;
-	// Never fabricate an approval from chat prose alone: without a real design
-	// session (run metadata + parked WAITING run) there is nothing confirmable,
-	// and confirming a message/conversation id always fails backend-side.
-	if (!designSession || !fallbackRunId) return null;
-	const recentAssistant = [...messages].reverse().find((m) => m.role === "assistant" && (
-		m.content.includes("blueprint is complete") ||
-		m.content.includes("The blueprint is complete") ||
-		m.content.includes("blueprint is ready") ||
-		m.content.includes("automation is ready") ||
-		m.content.includes("Automation blueprint") ||
-		m.content.includes("Start Process") ||
-		m.content.includes("Approve & Provision") ||
-		(m.content.includes("Goal:") && m.content.includes("Trigger:"))
-	));
-
-	if (!recentAssistant) return null;
-	const text = recentAssistant.content;
-
-	const nameMatch = text.match(/\*\*([A-Za-z0-9_\-\s]+)\*\*\s*(?:—|-|\n)/) || text.match(/blueprint(?:\s+is\s+complete)?[:\s]+(?:\*\*)?([A-Za-z0-9_\-]+)/i) || text.match(/(?:automation|employee|name)[:\s]+\*\*?([A-Za-z0-9_\-]+)\*?/i);
-	const name = nameMatch ? nameMatch[1].trim() : "New Automation";
-
-	const goalMatch = text.match(/(?:Goal)[:\s]+\*?([^\n\*\-]+)/i);
-	const goal = goalMatch ? goalMatch[1].trim() : "Automation ready for your n8n";
-
-	return {
-		runId: fallbackRunId,
-		name,
-		summary: `${name} — ${goal}`,
-		goal,
-		status: "READY_FOR_REVIEW",
-	};
 }
 
 function toInitialMessage(message: Message) {
@@ -186,10 +100,11 @@ export function ChatPage({ conversationId: initialConversationId }: { conversati
 					setConversation(loadedConversation);
 					setAgentId(loadedConversation.agentId);
 					setMessages(loadedMessages);
-				const pending =
-					getPendingApprovalFromConversation(loadedConversation) ||
-					getPendingApprovalFromMessages(loadedMessages, loadedConversation.id, hasDesignSession(loadedConversation));
-					if (pending) setPendingApproval(pending);
+					// Approval cards are event-driven (approval.required carries
+					// the card fields) — legacy design-session metadata and
+					// prose scraping are retired and can never fire. A reload
+					// mid-approval shows no card, but a decisive chat reply
+					// ("ok") still resumes the parked run backend-side.
 				}
 			} catch (err) {
 				if (!cancelled) setError(err instanceof Error ? err.message : "Could not load this chat.");
@@ -216,10 +131,11 @@ export function ChatPage({ conversationId: initialConversationId }: { conversati
 			]);
 			setConversation(updatedConv);
 			setMessages(updatedMessages);
-		const pending =
-			getPendingApprovalFromConversation(updatedConv, lastRunId) ||
-			getPendingApprovalFromMessages(updatedMessages, lastRunId, hasDesignSession(updatedConv));
-			setPendingApproval(pending);
+			// Event-driven cards only (see approval.required branch below):
+			// never derive approvals from conversation metadata or prose —
+			// those legacy paths fabricated cards for runs that could never
+			// be confirmed. lastRunId is kept for future run-scoped refresh.
+			void lastRunId;
 		} catch {
 			// ignore polling error
 		}
@@ -285,11 +201,27 @@ export function ChatPage({ conversationId: initialConversationId }: { conversati
 							if (failureMessage) {
 								yield { content: [{ type: "text", text: failureMessage }] };
 							}
-						} else if (event.type === "approval.required" || event.type === "run.waiting") {
-							// The backend now emits the approval gate mid-stream
-							// (execution approvals previously never arrived and the
-							// stream hung). Refresh approval state immediately so
-							// the approval UI appears without waiting for stream end.
+						} else if (event.type === "approval.required") {
+							// Event-driven approval card: the backend carries the
+							// blueprint card fields on this event, so the button
+							// appears mid-stream with no metadata scraping.
+							const payload = event.payload;
+							if (event.runId && payload) {
+								setPendingApproval({
+									runId: event.runId,
+									blueprintRevision: payload.blueprintRevision,
+									name: payload.blueprintName ?? "New Automation",
+									summary: payload.summary ?? payload.blueprintGoal ?? "Ready to provision in your n8n.",
+									status: "READY_FOR_REVIEW",
+									goal: payload.blueprintGoal,
+									triggerType: payload.triggerType,
+									stepCount: payload.stepCount,
+								});
+							}
+							if (activeConversationId) {
+								await checkConversationApproval(activeConversationId, lastRunId ?? undefined);
+							}
+						} else if (event.type === "run.waiting") {
 							if (activeConversationId) {
 								await checkConversationApproval(activeConversationId, lastRunId ?? undefined);
 							}
@@ -333,11 +265,10 @@ export function ChatPage({ conversationId: initialConversationId }: { conversati
 		setError(null);
 		try {
 			const idToConfirm = pendingApproval.runId;
-			const result = await confirmAutomationDesign(idToConfirm, {
-				confirm: true,
-				...(pendingApproval.blueprintRevision ? { blueprintRevision: pendingApproval.blueprintRevision } : {}),
-			});
-			if (result.status === "COMPLETED" || (result as unknown as { status?: string }).status === "COMPLETED") {
+			// Approvals go through the live approve endpoint (the legacy
+			// design-confirm endpoint was retired backend-side).
+			const result = await approveRun(idToConfirm);
+			if (result.status === "COMPLETED") {
 				setPendingApproval(null);
 				setCreatedSuccess(`🎉 ${pendingApproval.name} is now ACTIVE in your n8n — ready to run.`);
 				if (conversationIdRef.current) {
@@ -362,7 +293,7 @@ export function ChatPage({ conversationId: initialConversationId }: { conversati
 		}
 	};
 
-	/** Re-pulls conversation metadata; clears the card when the session resolved. */
+	/** Re-pulls conversation state; clears a stale card only when the run resolved. */
 	const refreshApprovalState = async () => {
 		const convId = conversationIdRef.current;
 		if (!convId) return;
@@ -373,10 +304,8 @@ export function ChatPage({ conversationId: initialConversationId }: { conversati
 			]);
 			setConversation(updatedConv);
 			setMessages(updatedMessages);
-			const pending =
-				getPendingApprovalFromConversation(updatedConv) ||
-				getPendingApprovalFromMessages(updatedMessages, updatedConv.id, hasDesignSession(updatedConv));
-			setPendingApproval(pending);
+			// No metadata/prose approval derivation (retired): a stale card is
+			// cleared only by an explicit confirm result or a fresh event.
 		} catch {
 			// keep the current card on refresh failure
 		}

@@ -46,7 +46,7 @@ export type RunStreamEvent =
   | { type: "tool.started"; runId: string; payload?: { callId: string; toolName: string } }
   | { type: "tool.completed"; runId: string; payload?: { callId: string; toolName: string; durationMs: number } }
   | { type: "tool.failed"; runId: string; payload?: { callId: string; toolName: string; error: unknown } }
-  | { type: "approval.required"; runId: string; payload?: { reason: string } }
+  | { type: "approval.required"; runId: string; payload?: { reason: string; blueprintName?: string; blueprintGoal?: string; triggerType?: string; stepCount?: number; blueprintRevision?: string; summary?: string } }
   | { type: "run.waiting"; runId: string; payload?: { reason: "clarification" | "approval" } }
   | {
       type: "run.completed";
@@ -128,8 +128,8 @@ export async function getRun(id: string): Promise<RunResponse> {
 
 export async function approveRun(
   id: string,
-): Promise<{ runId: string; status: string }> {
-  return api.post<{ runId: string; status: string }>(`/runs/${id}/approve`);
+): Promise<{ runId: string; status: string; response?: string }> {
+  return api.post<{ runId: string; status: string; response?: string }>(`/runs/${id}/approve`);
 }
 
 export async function rejectRun(
@@ -141,11 +141,17 @@ export async function rejectRun(
   });
 }
 
+/**
+ * The legacy design-confirm endpoint (`POST /runs/:id/confirm`) was retired
+ * backend-side (V2 approval cutover) — all approvals go through approveRun.
+ * Kept as a thin alias so existing call sites keep working.
+ */
 export async function confirmAutomationDesign(
   runId: string,
-  input: ConfirmAutomationDesignInput,
-): Promise<RunResponse> {
-  return api.post<RunResponse>(`/runs/${runId}/confirm`, input);
+  _input: ConfirmAutomationDesignInput,
+): Promise<{ runId: string; status: string; response?: string }> {
+  void _input;
+  return approveRun(runId);
 }
 
 /** @deprecated — use confirmAutomationDesign */
