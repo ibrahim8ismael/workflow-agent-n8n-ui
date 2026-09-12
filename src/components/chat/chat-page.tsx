@@ -107,7 +107,9 @@ function isUnconfirmableMessage(message: string): boolean {
 	return (
 		message.includes("no longer waiting") ||
 		message.includes("not an automation design") ||
-		message.includes("cannot be confirmed")
+		message.includes("cannot be confirmed") ||
+		message.includes("already being processed") ||
+		message.includes("already finished")
 	);
 }
 
@@ -274,6 +276,22 @@ export function ChatPage({ conversationId: initialConversationId }: { conversati
 							const finalResponse = event.response ?? event.payload?.response ?? streamedTokens;
 							if (finalResponse) {
 								yield { content: [{ type: "text", text: finalResponse }] };
+							}
+						} else if (event.type === "run.failed") {
+							// The backend surfaces design-stage failures as run.failed
+							// with a humanized message. Surface it — otherwise a
+							// failed run leaves a partial/empty bubble with no error.
+							const failureMessage = event.message ?? event.payload?.error?.message;
+							if (failureMessage) {
+								yield { content: [{ type: "text", text: failureMessage }] };
+							}
+						} else if (event.type === "approval.required" || event.type === "run.waiting") {
+							// The backend now emits the approval gate mid-stream
+							// (execution approvals previously never arrived and the
+							// stream hung). Refresh approval state immediately so
+							// the approval UI appears without waiting for stream end.
+							if (activeConversationId) {
+								await checkConversationApproval(activeConversationId, lastRunId ?? undefined);
 							}
 						}
 					}
